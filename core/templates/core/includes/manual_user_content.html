@@ -1,0 +1,53 @@
+<div class="manual-guide">
+    <section class="manual-guide__hero" aria-label="Alcance del manual">
+        <div class="manual-guide__hero-copy">
+            <span class="manual-guide__eyebrow">Guía visual de la página pública</span>
+            <h2>Cada apartado, explicado paso a paso.</h2>
+            <p>Recorre la página pública con capturas reales y una explicación clara de cada apartado visible.</p>
+            <span class="manual-guide__status"><span aria-hidden="true"></span>Guía de la página pública</span>
+        </div>
+        <div class="manual-guide__art" aria-hidden="true">
+            <span class="manual-guide__art-orbit"></span>
+            <svg viewBox="0 0 120 108">
+                <path class="manual-guide__book-shadow" d="M17 28c15-7 28-5 43 2v57c-15-7-28-9-43-2V28Zm86 0c-15-7-28-5-43 2v57c15-7 28-9 43-2V28Z"/>
+                <path class="manual-guide__book-page" d="M17 28c15-7 28-5 43 2v57c-15-7-28-9-43-2V28Zm86 0c-15-7-28-5-43 2v57c15-7 28-9 43-2V28Z"/>
+                <path class="manual-guide__book-line" d="M29 42c8-2 15-1 22 2M29 51c8-2 15-1 22 2M91 42c-8-2-15-1-22 2M91 51c-8-2-15-1-22 2"/>
+                <path class="manual-guide__book-spine" d="M60 30v57"/>
+                <path class="manual-guide__sparkle" d="m99 9 2 5 5 2-5 2-2 5-2-5-5-2 5-2 2-5Z"/>
+                <path class="manual-guide__sparkle small" d="m20 11 1.2 3 3 1.2-3 1.2-1.2 3-1.2-3-3-1.2 3-1.2 1.2-3Z"/>
+            </svg>
+        </div>
+    </section>
+
+    <section class="manual-guide__notice" role="status">
+        <span class="manual-guide__notice-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>
+        </span>
+        <div>
+            <h3>Solo lo que ves en la página pública</h3>
+            <p>Incluye la barra de navegación y el botón de inicio de sesión que aparece en la portada. No explica la pantalla de acceso ni las páginas que aparecen después de ingresar.</p>
+        </div>
+    </section>
+
+    <nav class="manual-guide__toc" aria-label="Apartados de la página pública">
+        <a href="#{{ manual_prefix }}-portada"><span>01</span>Portada</a>
+        <a href="#{{ manual_prefix }}-acceso"><span>02</span>Acceso</a>
+        <a href="#{{ manual_prefix }}-servicios"><span>03</span>Servicios</a>
+        <a href="#{{ manual_prefix }}-espacios"><span>04</span>Espacios</a>
+        <a href="#{{ manual_prefix }}-novedades"><span>05</span>Novedades</a>
+        <a href="#{{ manual_prefix }}-resenas"><span>06</span>Reseñas</a>
+        <a href="#{{ manual_prefix }}-contacto"><span>07</span>Contacto</a>
+        <a href="#{{ manual_prefix }}-ayuda"><span>08</span>Ayuda rápida</a>
+    </nav>
+
+    <div class="manual-guide__chapters">
+        {% include "core/includes/manual_chapter.html" with manual_prefix=manual_prefix manual_section_id="portada" manual_section_number="01" manual_section_title="Portada y navegación" manual_section_summary="Barra superior, presentación y mensajes rotativos" manual_section_capture="core/images/manual/01-portada.jpg" manual_section_explanation="La barra superior reúne los enlaces para recorrer Piemonte. En la portada aparece la fotografía de la urbanización con mensajes que cambian automáticamente; el botón principal lleva a Servicios." manual_section_step_one="Logo y navegación" manual_section_step_one_detail="Usa los enlaces para ir a Menú, Servicios, Sobre nosotros, Novedades o Reseñas." manual_section_step_two="Presentación principal" manual_section_step_two_detail="Lee los mensajes rotativos y selecciona Descubre nuestra Urbanización para ver los servicios." manual_section_step_three="Acceso visible" manual_section_step_three_detail="El icono de persona abre las opciones de acceso, explicadas en el siguiente apartado." %}
+        {% include "core/includes/manual_chapter.html" with manual_prefix=manual_prefix manual_section_id="acceso" manual_section_number="02" manual_section_title="Botón de inicio de sesión" manual_section_summary="Cómo encontrar el acceso desde la portada pública" manual_section_capture="core/images/manual/02-menu-y-acceso.jpg" manual_section_explanation="Al pulsar el icono de persona se despliega la opción Iniciar sesión. Esta guía describe el botón visible, no la pantalla de acceso ni el contenido posterior al ingreso." manual_section_step_one="Abre las opciones" manual_section_step_one_detail="Pulsa el icono de persona ubicado en la parte superior derecha." manual_section_step_two="Selecciona Iniciar sesión" manual_section_step_two_detail="El enlace abre la pantalla de acceso a la cuenta." manual_section_step_three="Límite de esta guía" manual_section_step_three_detail="El formulario de acceso y el panel privado no forman parte del manual público." %}
+        {% include "core/includes/manual_chapter.html" with manual_prefix=manual_prefix manual_section_id="servicios" manual_section_number="03" manual_section_title="Servicios" manual_section_summary="Información y opciones de los servicios de Piemonte" manual_section_capture="core/images/manual/03-servicios.jpg" manual_section_explanation="La sección La Esencia de Piemonte presenta un servicio a la vez. Las tarjetas de la derecha permiten elegir qué información consultar." manual_section_step_one="Panel descriptivo" manual_section_step_one_detail="Muestra el nombre, la explicación y las características del servicio seleccionado." manual_section_step_two="Tarjetas de servicio" manual_section_step_two_detail="Elige Control de acceso, Visitantes, Pagos, Residentes, Reportes o Comunicaciones." manual_section_step_three="Cambiar información" manual_section_step_three_detail="Al seleccionar otra tarjeta, se actualiza el panel descriptivo." %}
+        {% include "core/includes/manual_chapter.html" with manual_prefix=manual_prefix manual_section_id="espacios" manual_section_number="04" manual_section_title="Espacios y zonas" manual_section_summary="Áreas comunes y características de la urbanización" manual_section_capture="core/images/manual/04-espacios.jpg" manual_section_explanation="Este apartado presenta distintos espacios de Piemonte y permite consultar una breve descripción de cada uno." manual_section_step_one="Opciones disponibles" manual_section_step_one_detail="Selecciona Salón social, Parqueadero, Zona de juegos o Zona de seguridad." manual_section_step_two="Cambiar de espacio" manual_section_step_two_detail="Pulsa una tarjeta para actualizar la fotografía y la descripción." manual_section_step_three="Información visible" manual_section_step_three_detail="Lee el texto que acompaña la imagen para conocer el espacio seleccionado." %}
+        {% include "core/includes/manual_chapter.html" with manual_prefix=manual_prefix manual_section_id="novedades" manual_section_number="05" manual_section_title="Novedades" manual_section_summary="Avisos y noticias publicados para la comunidad" manual_section_capture="core/images/manual/05-novedades.jpg" manual_section_explanation="Las tarjetas resumen las novedades publicadas por la administración. Cada una reúne su categoría, fecha, título y descripción." manual_section_step_one="Identifica el aviso" manual_section_step_one_detail="La etiqueta muestra el tipo de novedad y la fecha indica cuándo ocurre." manual_section_step_two="Lee el detalle" manual_section_step_two_detail="Revisa el título y el texto de cada tarjeta." manual_section_step_three="Ver más novedades" manual_section_step_three_detail="Si hay más publicaciones, usa el botón para desplegarlas." %}
+        {% include "core/includes/manual_chapter.html" with manual_prefix=manual_prefix manual_section_id="resenas" manual_section_number="06" manual_section_title="Reseñas" manual_section_summary="Opiniones y calificaciones visibles en la página" manual_section_capture="core/images/manual/06-resenas.jpg" manual_section_explanation="Las reseñas muestran la calificación en estrellas, el comentario y el nombre de quien comparte su experiencia." manual_section_step_one="Calificación" manual_section_step_one_detail="Consulta la puntuación y su valoración." manual_section_step_two="Opinión" manual_section_step_two_detail="Lee el comentario publicado por el residente." manual_section_step_three="Ver más reseñas" manual_section_step_three_detail="Pulsa el botón para consultar otras opiniones disponibles." %}
+        {% include "core/includes/manual_chapter.html" with manual_prefix=manual_prefix manual_section_id="contacto" manual_section_number="07" manual_section_title="Contacto y ubicación" manual_section_summary="Datos de contacto y mapa de Piemonte" manual_section_capture="core/images/manual/07-contacto-y-ubicacion.jpg" manual_section_explanation="En el pie de la página encuentras la información general de Piemonte, los datos de contacto y el mapa de ubicación." manual_section_step_one="Información de la urbanización" manual_section_step_one_detail="Identifica el nombre y la descripción de Piemonte." manual_section_step_two="Contacto" manual_section_step_two_detail="Consulta los teléfonos y el correo electrónico publicados." manual_section_step_three="Ubicación" manual_section_step_three_detail="Usa el mapa para orientarte o abrir la ubicación en Maps." %}
+        {% include "core/includes/manual_chapter.html" with manual_prefix=manual_prefix manual_section_id="ayuda" manual_section_number="08" manual_section_title="Ayuda rápida" manual_section_summary="Accesos al manual y al bot de soporte" manual_section_capture="core/images/manual/08-ayuda-rapida.jpg" manual_section_explanation="La burbuja fija de la esquina inferior derecha mantiene a mano las opciones de ayuda mientras recorres la página." manual_section_step_one="Abre la burbuja" manual_section_step_one_detail="Pulsa el botón redondo con la llave." manual_section_step_two="Manual de usuario" manual_section_step_two_detail="Abre esta guía visual de la página pública." manual_section_step_three="Bot de soporte" manual_section_step_three_detail="Inicia una conversación por WhatsApp con el soporte." %}
+    </div>
+</div>

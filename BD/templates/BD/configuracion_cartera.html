@@ -1,0 +1,323 @@
+{# Módulo: Presenta la interfaz y los datos dinámicos de la vista «configuracion_cartera». #}{# Hereda la estructura común definida en «"BD/basex.html"». #}{% extends "BD/basex.html" %}
+
+{# Define la sección de plantilla «title», que la vista base o hija completa. #}{% block title %}Configuración | Piemonte{% endblock %}
+{# Define la sección de plantilla «extra_css», que la vista base o hija completa. #}{% block extra_css %}
+<style>
+    .form-panel form label {
+        font-size: .9rem;
+    }
+    .status-module {
+        margin: 0 0 1.25rem;
+        padding: 0;
+        overflow: hidden;
+        background: #fff;
+        border: 1px solid #dce9e5;
+        border-radius: 14px;
+        box-shadow: 0 5px 16px rgba(23, 63, 58, .055);
+    }
+    .status-module legend {
+        float: none;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+    .status-module-heading {
+        display: flex;
+        align-items: center;
+        gap: .8rem;
+        padding: .9rem 1.1rem;
+        color: #fff;
+        background: linear-gradient(110deg, #123b36, #1c5a4f);
+        border-bottom: 1px solid #17483f;
+        border-left: 5px solid #72d7b5;
+    }
+    .status-module-icon {
+        display: inline-flex;
+        width: 38px;
+        height: 38px;
+        flex: 0 0 38px;
+        align-items: center;
+        justify-content: center;
+        color: #123b36;
+        background: #b9efdc;
+        border: 1px solid rgba(255, 255, 255, .55);
+        border-radius: 11px;
+    }
+    .status-module-title {
+        margin: 0;
+        color: #fff;
+        font-size: 1.02rem;
+        font-weight: 800;
+    }
+    .status-module-subtitle {
+        display: block;
+        margin-top: .12rem;
+        color: rgba(255, 255, 255, .76);
+        font-size: .72rem;
+        font-weight: 500;
+    }
+    .status-module-count {
+        margin-left: auto;
+        padding: .3rem .65rem;
+        color: #fff;
+        background: rgba(255, 255, 255, .12);
+        border: 1px solid rgba(255, 255, 255, .3);
+        border-radius: 999px;
+        font-size: .7rem;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+    .status-module-body { padding: .25rem 1.1rem 0; }
+    .status-internal-value {
+        display: flex;
+        min-height: 45px;
+        align-items: center;
+        margin: 0;
+        color: #526963;
+        font-size: .74rem;
+        font-weight: 700;
+        line-height: 1.3;
+        overflow-wrap: anywhere;
+    }
+    .status-preview {
+        display: inline-flex;
+        min-height: 45px;
+        align-items: center;
+        padding: .55rem .85rem;
+        font-size: .82rem;
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+    .mora-calculator {
+        /* Resalta el panel que muestra el cálculo de mora en tiempo real. */
+        height: 100%;
+        padding: 1.25rem;
+        background: linear-gradient(145deg, #f4faf7, #fff);
+        border: 1px solid #d6e8e0;
+        border-radius: 14px;
+        box-shadow: 0 6px 18px rgba(23, 63, 58, .06);
+    }
+    .mora-calculator-title {
+        display: flex;
+        align-items: center;
+        gap: .6rem;
+        margin-bottom: .35rem;
+        color: #173f3a;
+        font-size: 1rem;
+        font-weight: 800;
+    }
+    .mora-calculator-title i { color: #16866f; }
+    .mora-calculator-line {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: .55rem 0;
+        color: #526963;
+        border-bottom: 1px solid #e4eeea;
+        font-size: .86rem;
+    }
+    .mora-calculator-total {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-top: .45rem;
+        color: #173f3a;
+        font-size: 1rem;
+        font-weight: 800;
+    }
+    @media (max-width: 991.98px) {
+        .mora-calculator { margin-top: .25rem; }
+    }
+</style>
+{% endblock %}
+{# Define la sección de plantilla «content», que la vista base o hija completa. #}{% block content %}
+<div class="page-heading">
+    <div class="page-heading-copy"><h1 class="page-heading-title"><span class="page-heading-icon"><i class="fa-solid fa-gears"></i></span>Configuración</h1><p class="page-heading-description">Define reglas de cartera, tiempos y cómo se muestran los estados de los módulos.</p></div>
+    <div class="page-heading-actions"><a href="{% url 'dashboard' %}" class="btn btn-outline-secondary"><i class="fa-solid fa-arrow-left me-2"></i>Volver al dashboard</a></div>
+</div>
+
+
+<div class="card form-panel" style="max-width: 1120px;">
+    <div class="card-body p-4 p-md-5">
+{# Esta estructura presenta el bloque de formulario de captura de la pantalla. #}        <form method="post">
+            {% csrf_token %}
+{# Esta estructura presenta el bloque de sección visual de la pantalla. #}            <section class="mb-4 pb-3 border-bottom" aria-labelledby="configuracion-cartera-heading">
+                <h2 id="configuracion-cartera-heading" class="h5 mb-3"><i class="fa-solid fa-wallet me-2 text-success"></i>Cartera</h2>
+                <div class="row g-4 align-items-stretch mb-4">
+                    <div class="col-lg-7">
+                        <div class="mb-3">
+                            <label for="{{ form.porcentaje_mora.id_for_label }}" class="form-label">{{ form.porcentaje_mora.label }}</label>
+                            {{ form.porcentaje_mora }}
+{# Genera una sección repetida para cada elemento de «error in form.porcentaje_mora.errors». #}                            {% for error in form.porcentaje_mora.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                        </div>
+                        <div>
+                            <label for="{{ form.monto_aumento_mensual.id_for_label }}" class="form-label">{{ form.monto_aumento_mensual.label }}</label>
+                            {{ form.monto_aumento_mensual }}
+{# Genera una sección repetida para cada elemento de «error in form.monto_aumento_mensual.errors». #}                            {% for error in form.monto_aumento_mensual.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                        </div>
+                        <div class="form-text mt-2">En cada período se suma la administración mensual a la cartera. La mora se calcula como porcentaje del saldo acumulado anterior, descontando el saldo a favor.</div>
+                        <div class="mt-3">
+                            <label for="{{ form.dia_vencimiento.id_for_label }}" class="form-label">{{ form.dia_vencimiento.label }}</label>
+                            {{ form.dia_vencimiento }}
+{# Genera una sección repetida para cada elemento de «error in form.dia_vencimiento.errors». #}                            {% for error in form.dia_vencimiento.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                            <div class="form-text">Si el mes no tiene ese día, vence el último día del mes.</div>
+                        </div>
+                        <div class="mt-3">
+                            <label for="{{ form.frecuencia_mora.id_for_label }}" class="form-label">{{ form.frecuencia_mora.label }}</label>
+                            {{ form.frecuencia_mora }}
+{# Genera una sección repetida para cada elemento de «error in form.frecuencia_mora.errors». #}                            {% for error in form.frecuencia_mora.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+{# Muestra este contenido únicamente cuando se cumple la condición «form.frecuencia_mora.value == 'minuto'». #}                            {% if form.frecuencia_mora.value == 'minuto' %}<div class="alert alert-warning mt-3 mb-0">Modo de prueba activo: cada minuto se agrega la administración mensual y se calcula la mora sobre el saldo acumulado previo. El cálculo se actualiza mientras un administrador tenga la aplicación abierta. Desactívalo al terminar la prueba.</div>{% endif %}
+                        </div>
+                    </div>
+                    <div class="col-lg-5">
+{# Esta estructura presenta el bloque de panel complementario de la pantalla. #}                        <aside class="mora-calculator" aria-labelledby="mora-calculator-title">
+                            <h3 id="mora-calculator-title" class="mora-calculator-title"><i class="fa-solid fa-calculator"></i>Cálculo</h3>
+                            <p class="text-muted small mb-3">Ingresa el saldo acumulado neto, después de descontar el saldo a favor, para estimar la mora y el nuevo cargo mensual.</p>
+                            <label for="saldo-ejemplo-mora" class="form-label">Saldo pendiente después de saldo a favor</label>
+                            <div class="input-group mb-2">
+                                <span class="input-group-text">$</span>
+                                <input id="saldo-ejemplo-mora" class="form-control" type="number" min="0" step="0.01" value="100000" inputmode="decimal" aria-describedby="ayuda-valor-cartera">
+                            </div>
+                            <div id="ayuda-valor-cartera" class="form-text mb-2">Ejemplo inicial: $100.000. Ingresa aquí el saldo que queda pendiente tras aplicar el saldo a favor.</div>
+                            <div class="small text-muted mb-1">Cálculo: (saldo acumulado × interés) + administración mensual</div>
+                            <div class="mora-calculator-line"><span>Interés calculado</span><strong id="calculo-mora-porcentaje" aria-live="polite">$0</strong></div>
+                            <div class="mora-calculator-line"><span>Administración mensual</span><strong id="calculo-mora-fijo" aria-live="polite">$0</strong></div>
+                            <div class="mora-calculator-total"><span>Incremento del período</span><strong id="calculo-mora-total" aria-live="polite">$0</strong></div>
+                        </aside>
+                    </div>
+                </div>
+            </section>
+{# Esta estructura presenta el bloque de sección visual de la pantalla. #}            <section class="mb-4" aria-labelledby="configuracion-domiciliarios-heading">
+                <h2 id="configuracion-domiciliarios-heading" class="h5 mb-3"><i class="fa-solid fa-motorcycle me-2 text-success"></i>Domiciliarios</h2>
+                <label for="{{ form.tiempo_domiciliario_minutos.id_for_label }}" class="form-label">{{ form.tiempo_domiciliario_minutos.label }}</label>
+                {{ form.tiempo_domiciliario_minutos }}
+{# Genera una sección repetida para cada elemento de «error in form.tiempo_domiciliario_minutos.errors». #}                {% for error in form.tiempo_domiciliario_minutos.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                <div class="form-text">Al superar este tiempo, el domiciliario aparecerá como demorado y se activará la alerta. El cambio también aplica a los ingresos que sigan pendientes.</div>
+            </section>
+{# Esta estructura presenta el bloque de sección visual de la pantalla. #}            <section class="mb-4 pt-4 border-top" aria-labelledby="configuracion-estados-heading">
+                <h2 id="configuracion-estados-heading" class="h5 mb-2"><i class="fa-solid fa-tags me-2 text-success"></i>Estados de los módulos</h2>
+                <p class="text-muted small mb-4">Personaliza el nombre y el color. La vista previa cambia al instante para que veas cómo quedará antes de guardar. Estos cambios solo afectan la presentación, no el funcionamiento de los estados.</p>
+{# Genera una sección repetida para cada elemento de «seccion in form.estado_secciones». #}                {% for seccion in form.estado_secciones %}
+                <fieldset class="status-module">
+                    <legend>
+                        <div class="status-module-heading">
+                            <span class="status-module-icon">
+{# Muestra este contenido únicamente cuando se cumple la condición «seccion.modulo == 'domicilio'». #}                                {% if seccion.modulo == 'domicilio' %}<i class="fa-solid fa-motorcycle"></i>
+                                {% elif seccion.modulo == 'visitante' %}<i class="fa-solid fa-person-walking"></i>
+                                {% elif seccion.modulo == 'paquete' %}<i class="fa-solid fa-box"></i>
+                                {% elif seccion.modulo == 'pago' %}<i class="fa-solid fa-money-bill-wave"></i>
+                                {% else %}<i class="fa-solid fa-house"></i>{% endif %}
+                            </span>
+                            <span>
+                                <span class="status-module-title">{{ seccion.label }}</span>
+                                <span class="status-module-subtitle">Personaliza cómo se identifican sus estados</span>
+                            </span>
+                            <span class="status-module-count">{{ seccion.filas|length }} estados</span>
+                        </div>
+                    </legend>
+                    <div class="status-module-body">
+{# Genera una sección repetida para cada elemento de «fila in seccion.filas». #}                    {% for fila in seccion.filas %}
+                    <div class="row g-3 align-items-end mb-3 pb-3 border-bottom" data-status-preview-row>
+                        <div class="col-md-3">
+                            <label class="form-label">Estado interno</label>
+                            <div class="status-internal-value">{{ fila.estado }}</div>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="{{ fila.nombre.id_for_label }}" class="form-label">Nombre visible</label>
+                            {{ fila.nombre }}
+{# Genera una sección repetida para cada elemento de «error in fila.nombre.errors». #}                            {% for error in fila.nombre.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                        </div>
+                        <div class="col-md-2">
+                            <label for="{{ fila.color.id_for_label }}" class="form-label">Color</label>
+                            {{ fila.color }}
+{# Genera una sección repetida para cada elemento de «error in fila.color.errors». #}                            {% for error in fila.color.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-label">Vista previa</div>
+                            <span class="badge status-preview"
+                                  data-status-preview
+                                  data-name-input="{{ fila.nombre.id_for_label }}"
+                                  data-color-input="{{ fila.color.id_for_label }}"
+                                  data-default-label="{{ fila.iniciales.nombre }}"
+                                  style="background-color: {{ fila.iniciales.color }}; color: {{ fila.iniciales.color_texto }};">{{ fila.iniciales.nombre }}</span>
+                            <div class="form-text">Así se verá el estado en el módulo.</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    </div>
+                </fieldset>
+                {% endfor %}
+            </section>
+{# Muestra este contenido únicamente cuando se cumple la condición «form.non_field_errors». #}            {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+            <button type="submit" class="btn btn-success"><i class="fa-solid fa-floppy-disk me-2"></i>Guardar configuración</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+{# Define la sección de plantilla «extra_js», que la vista base o hija completa. #}{% block extra_js %}
+<script>
+(() => {
+    // Obtiene los controles de configuración y los resultados donde se muestra la simulación de mora.
+    const porcentajeMora = document.getElementById('{{ form.porcentaje_mora.id_for_label }}');
+    const montoFijoMora = document.getElementById('{{ form.monto_aumento_mensual.id_for_label }}');
+    const saldoEjemplo = document.getElementById('saldo-ejemplo-mora');
+    const resultadoPorcentaje = document.getElementById('calculo-mora-porcentaje');
+    const resultadoFijo = document.getElementById('calculo-mora-fijo');
+    const resultadoTotal = document.getElementById('calculo-mora-total');
+
+    if (porcentajeMora && montoFijoMora && saldoEjemplo && resultadoPorcentaje && resultadoFijo && resultadoTotal) {
+        // Formatea los importes en pesos colombianos para que la vista previa coincida con la moneda del sistema.
+        const moneda = new Intl.NumberFormat('es-CO', {
+            style: 'currency',
+            currency: 'COP',
+            maximumFractionDigits: 2,
+        });
+        // Recalcula los componentes y el total cada vez que cambia el saldo o algún parámetro de mora.
+        const actualizarCalculoMora = () => {
+            // Evita saldos o porcentajes negativos y limita el porcentaje simulado al intervalo de 0 a 100.
+            const saldo = Math.max(0, Number(saldoEjemplo.value) || 0);
+            const porcentaje = Math.min(100, Math.max(0, Number(porcentajeMora.value) || 0));
+            const fijo = Math.max(0, Number(montoFijoMora.value) || 0);
+            // Aplica la fórmula de interés simple: saldo × porcentaje ÷ 100 y redondea el resultado a centavos.
+            const moraPorcentaje = Math.round((saldo * porcentaje / 100 + Number.EPSILON) * 100) / 100;
+
+            // Presenta por separado la mora sobre el saldo anterior y el nuevo cargo mensual.
+            resultadoPorcentaje.textContent = moneda.format(moraPorcentaje);
+            resultadoFijo.textContent = moneda.format(fijo);
+            resultadoTotal.textContent = moneda.format(moraPorcentaje + fijo);
+        };
+
+        // Actualiza la simulación al escribir, al confirmar un campo y también al cargar la página.
+        [porcentajeMora, montoFijoMora, saldoEjemplo].forEach((campo) => {
+            campo.addEventListener('input', actualizarCalculoMora);
+            campo.addEventListener('change', actualizarCalculoMora);
+        });
+        actualizarCalculoMora();
+    }
+
+    // Configura una vista previa independiente para cada nombre y color de estado que se puede editar.
+    document.querySelectorAll('[data-status-preview]').forEach((preview) => {
+        const nombre = document.getElementById(preview.dataset.nameInput);
+        const color = document.getElementById(preview.dataset.colorInput);
+        if (!nombre || !color) return;
+
+        const actualizarVistaPrevia = () => {
+            // Usa el texto predeterminado si el nombre todavía está vacío y aplica el color elegido.
+            preview.textContent = nombre.value.trim() || preview.dataset.defaultLabel || 'Estado';
+            preview.style.backgroundColor = color.value;
+            const hex = color.value.replace('#', '');
+            const canales = [0, 2, 4].map((indice) => Number.parseInt(hex.slice(indice, indice + 2), 16));
+            // Calcula luminancia ponderada RGB para escoger texto oscuro sobre fondos claros y blanco sobre fondos oscuros.
+            const luminancia = 0.299 * canales[0] + 0.587 * canales[1] + 0.114 * canales[2];
+            preview.style.color = luminancia > 150 ? '#212529' : '#ffffff';
+        };
+
+        // Mantiene la etiqueta de muestra sincronizada con los cambios del nombre y del selector de color.
+        nombre.addEventListener('input', actualizarVistaPrevia);
+        color.addEventListener('input', actualizarVistaPrevia);
+        color.addEventListener('change', actualizarVistaPrevia);
+        actualizarVistaPrevia();
+    });
+})();
+</script>
+{% endblock %}

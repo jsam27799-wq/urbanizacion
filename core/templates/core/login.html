@@ -1,0 +1,104 @@
+{# Módulo: Presenta la interfaz y los datos dinámicos de la vista «login». #}{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Piemonte</title>
+    <link rel="stylesheet" href="{% static 'core/css/tooplate-strategic-style.css' %}?v=16">
+    <style>
+        .login-navbar .nav-container {
+            position: relative;
+        }
+
+        .login-navbar .nav-links {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-left: 0;
+        }
+    </style>
+</head>
+<body>
+{# Esta estructura presenta el bloque de navegación de la pantalla. #}    <nav class="navbar login-navbar">
+        <div class="nav-container">
+            <a href="/" class="logo">
+                <div class="logo-icon">
+                    <img src="{% static 'core/images/logo.png' %}" alt="Logo" width="60" height="60">
+                </div>
+                <span>Urbanización Piemonte</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="/">Volver al Menu</a></li>
+            </ul>
+        </div>
+    </nav>
+
+{# Esta estructura presenta el bloque de sección visual de la pantalla. #}    <section class="hero login-hero">
+        <div class="hero-content login-card">
+            <h1>Iniciar Sesión</h1>
+            <p>Accede al sistema de la Residencia Piemonte.</p>
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="login-message" role="alert">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+    <div id="login-feedback" aria-live="polite"></div>
+{# Esta estructura presenta el bloque de formulario de captura de la pantalla. #}                <form id="login-form" method="post" action="{% url 'login' %}">
+                    {% csrf_token %}
+                    <input type="text" name="username" placeholder="Usuario" required>
+                    <input type="password" name="password" placeholder="Contraseña" required>
+    <button id="login-submit" type="submit" class="cta-button">Ingresar</button>
+</form>
+                <div class="login-recovery-links">
+                    <a href="{% url 'password_reset' %}">¿Olvidaste tu contraseña?</a>
+                </div>
+        </div>
+    </section>
+    <script>
+        const loginForm = document.getElementById('login-form');
+        const loginFeedback = document.getElementById('login-feedback');
+        const loginSubmit = document.getElementById('login-submit');
+
+        loginForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            loginFeedback.replaceChildren();
+            loginSubmit.disabled = true;
+            loginSubmit.textContent = 'Validando...';
+
+            try {
+const response = await fetch(loginForm.action, {
+    method: 'POST',
+    body: new FormData(loginForm),
+    headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/json',
+    },
+    credentials: 'same-origin',
+});
+const result = await response.json();
+
+if (!response.ok) {
+    const error = document.createElement('div');
+    error.className = 'login-message';
+    error.setAttribute('role', 'alert');
+    error.textContent = result.message;
+    loginFeedback.append(error);
+    return;
+}
+
+window.location.assign(result.redirect_url);
+            } catch (error) {
+const feedback = document.createElement('div');
+feedback.className = 'login-message';
+feedback.setAttribute('role', 'alert');
+feedback.textContent = 'No fue posible validar el inicio de sesión. Inténtalo nuevamente.';
+loginFeedback.append(feedback);
+            } finally {
+loginSubmit.disabled = false;
+loginSubmit.textContent = 'Ingresar';
+            }
+        });
+    </script>
+</body>
+</html>

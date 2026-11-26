@@ -1,0 +1,106 @@
+{# Módulo: Presenta la interfaz y los datos dinámicos de la vista «propietario». #}{# Hereda la estructura común definida en «"BD/basex.html"». #}{% extends "BD/basex.html" %}
+
+{# Define la sección de plantilla «title», que la vista base o hija completa. #}{% block title %}Propietario / Residente | Piemonte{% endblock %}
+{# Define la sección de plantilla «extra_css», que la vista base o hija completa. #}{% block extra_css %}<style>.panel { border: 0; border-radius: 10px; box-shadow: 0 4px 18px rgba(38, 50, 56, .1); }</style>{% endblock %}
+{# Define la sección de plantilla «content», que la vista base o hija completa. #}{% block content %}
+<div class="page-heading">
+{# Muestra este contenido únicamente cuando se cumple la condición «propietario_editando». #}	<div class="page-heading-copy"><h1 class="page-heading-title"><span class="page-heading-icon"><i class="fa-solid fa-users"></i></span>{% if residente_editando %}Editar residente{% elif propietario_editando %}Editar propietario / residente{% else %}Registrar propietario / residente{% endif %}</h1><p class="page-heading-description">Registra una persona y define su rol dentro de la urbanización.</p></div>
+	<div class="page-heading-actions"><a href="{% url 'logout' %}" class="btn btn-outline-secondary"><i class="fa-solid fa-right-from-bracket me-2"></i>Cerrar sesión</a></div>
+</div>
+
+
+<div class="card panel form-panel">
+	<div class="card-body p-4 p-md-5">
+{# Esta estructura presenta el bloque de formulario de captura de la pantalla. #}		<form method="post" lang="es" id="formulario-propietario-residente">
+			{% csrf_token %}
+			<div class="row">
+{# Genera una sección repetida para cada elemento de «field in form». #}				{% for field in form %}
+{# Muestra este contenido únicamente cuando se cumple la condición «field.name != 'rol_otro'». #}					{% if field.name != 'rol_otro' %}
+{# Muestra este contenido únicamente cuando se cumple la condición «field.name == 'correo'». #}					<div class="col-md-6 mb-3{% if field.name == 'correo' %} campo-correo{% endif %}">
+						<label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+						{{ field }}
+{# Genera una sección repetida para cada elemento de «error in field.errors». #}						{% for error in field.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+					</div>
+					{% endif %}
+				{% endfor %}
+				<div id="campo-rol-otro" class="col-md-6 mb-3 d-none">
+					<label for="{{ form.rol_otro.id_for_label }}" class="form-label">{{ form.rol_otro.label }}</label>
+					{{ form.rol_otro }}
+{# Genera una sección repetida para cada elemento de «error in form.rol_otro.errors». #}					{% for error in form.rol_otro.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+				</div>
+			</div>
+{# Muestra este contenido únicamente cuando se cumple la condición «form.non_field_errors». #}			{% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+			<div class="d-flex gap-2">
+				<button type="submit" class="btn btn-success"><i class="fa-solid fa-floppy-disk me-2"></i>Guardar</button>
+{# Muestra este contenido únicamente cuando se cumple la condición «propietario_editando». #}				{% if propietario_editando or residente_editando %}<a href="{% url 'registrar_propietario' %}" class="btn btn-outline-secondary">Cancelar</a>{% endif %}
+			</div>
+		</form>
+	</div>
+</div>
+<div class="card panel mt-4">
+	<div class="card-body p-0">
+		<div class="p-4 border-bottom d-flex justify-content-between align-items-center"><h2 class="h5 mb-0">Propietarios / residentes registrados</h2><span class="badge text-bg-secondary">{{ total_registros }} total</span></div>
+{# Esta estructura presenta el bloque de formulario de captura de la pantalla. #}		<form method="get" class="row g-3 p-4 border-bottom align-items-end">
+			<div class="col-md-4">
+				<label for="filtro-rol" class="form-label">Buscar por tipo</label>
+				<select id="filtro-rol" name="rol" class="form-select">
+					<option value="">Todos</option>
+{# Genera una sección repetida para cada elemento de «valor, etiqueta in form.ROLES_PROPIETARIO». #}					{% for valor, etiqueta in form.ROLES_PROPIETARIO %}
+{# Muestra este contenido únicamente cuando se cumple la condición «rol_filtro == valor». #}						<option value="{{ valor }}" {% if rol_filtro == valor %}selected{% endif %}>{{ etiqueta }}</option>
+					{% endfor %}
+				</select>
+			</div>
+			<div class="col-md-3">
+				<label for="filtro-cedula" class="form-label">Buscar por cédula</label>
+				<input id="filtro-cedula" name="cedula" type="number" min="1" class="form-control" value="{{ cedula_filtro }}" placeholder="Número de cédula">
+			</div>
+			<div class="col-md-3">
+				<label for="filtro-casa" class="form-label">Buscar por número de casa</label>
+				<select id="filtro-casa" name="casa" class="form-select">
+					<option value="">Todas las casas</option>
+{# Genera una sección repetida para cada elemento de «casa in casas_filtro». #}					{% for casa in casas_filtro %}
+{# Muestra este contenido únicamente cuando se cumple la condición «casa_filtro == casa.numero_casa|stringformat:'s'». #}						<option value="{{ casa.numero_casa }}" {% if casa_filtro == casa.numero_casa|stringformat:'s' %}selected{% endif %}>Casa {{ casa.numero_casa }}</option>
+					{% endfor %}
+				</select>
+			</div>
+			<div class="col-md-2 d-flex gap-2">
+				<button type="submit" class="btn btn-primary flex-grow-1"><i class="fa-solid fa-magnifying-glass me-2"></i>Buscar</button>
+				<a href="{% url 'registrar_propietario' %}?registros=1" class="btn btn-outline-secondary" title="Limpiar búsqueda"><i class="fa-solid fa-rotate-left"></i><span class="visually-hidden">Limpiar búsqueda</span></a>
+			</div>
+		</form>
+{# Esta estructura presenta el bloque de tabla de resultados de la pantalla. #}		<div class="table-responsive registros-scroll"><table class="table table-hover align-middle mb-0"><thead class="table-light"><tr><th>Cédula</th><th>Nombre</th><th>Teléfono</th><th>Correo</th><th>Rol</th><th>Casa(s)</th><th class="text-end">Acciones</th></tr></thead><tbody>
+{# Genera una sección repetida para cada elemento de «propietario in propietarios». #}{# Muestra este contenido únicamente cuando se cumple la condición «propietario.numeros_casas». #}{# Genera una sección repetida para cada elemento de «numero in propietario.numeros_casas». #}{# Muestra este contenido únicamente cuando se cumple la condición «not forloop.last». #}{# Esta estructura presenta el bloque de formulario de captura de la pantalla. #}			{% for propietario in propietarios %}<tr><td>{{ propietario.cedula }}</td><td>{{ propietario.nombre }} {{ propietario.apellido }}</td><td>{{ propietario.telefono }}</td><td>{{ propietario.correo }}</td><td>{{ propietario.rol }}</td><td>{% if propietario.numeros_casas %}{% for numero in propietario.numeros_casas %}Casa {{ numero }}{% if not forloop.last %}, {% endif %}{% endfor %}{% else %}Sin casa{% endif %}</td><td class="text-end text-nowrap"><button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#detallePropietario{{ propietario.id_propietario }}" title="Ver detalle"><i class="fa-solid fa-eye"></i><span class="visually-hidden">Ver detalle</span></button> <a href="{% url 'editar_propietario' propietario.id_propietario %}" class="btn btn-sm btn-outline-primary" title="Editar"><i class="fa-solid fa-pen-to-square"></i><span class="visually-hidden">Editar</span></a> <form method="post" class="d-inline" onsubmit="return confirm('¿Eliminar este propietario?');">{% csrf_token %}<input type="hidden" name="action" value="delete"><input type="hidden" name="propietario_id" value="{{ propietario.id_propietario }}"><button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar"><i class="fa-solid fa-trash"></i><span class="visually-hidden">Eliminar</span></button></form></td></tr>
+{# Muestra este contenido únicamente cuando se cumple la condición «propietario.numeros_casas». #}{# Genera una sección repetida para cada elemento de «numero in propietario.numeros_casas». #}{# Muestra este contenido únicamente cuando se cumple la condición «not forloop.last». #}			<div class="modal fade" id="detallePropietario{{ propietario.id_propietario }}" tabindex="-1" aria-labelledby="detallePropietarioLabel{{ propietario.id_propietario }}" aria-hidden="true"><div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h2 class="modal-title fs-5" id="detallePropietarioLabel{{ propietario.id_propietario }}"><i class="fa-solid fa-user me-2"></i>Detalle del propietario / residente</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button></div><div class="modal-body"><div class="row g-3"><div class="col-md-6"><strong>Cédula:</strong><br>{{ propietario.cedula }}</div><div class="col-md-6"><strong>Nombre:</strong><br>{{ propietario.nombre }} {{ propietario.apellido }}</div><div class="col-md-6"><strong>Teléfono:</strong><br>{{ propietario.telefono }}</div><div class="col-md-6"><strong>Correo:</strong><br>{{ propietario.correo }}</div><div class="col-md-6"><strong>Rol:</strong><br>{{ propietario.rol }}</div><div class="col-md-6"><strong>Casa(s) registrada(s):</strong><br>{% if propietario.numeros_casas %}{% for numero in propietario.numeros_casas %}Casa {{ numero }}{% if not forloop.last %}, {% endif %}{% endfor %}{% else %}Sin casa registrada{% endif %}</div></div></div></div></div></div>
+			{% endfor %}
+{# Genera una sección repetida para cada elemento de «residente in residentes». #}			{% for residente in residentes %}
+{# Muestra este contenido únicamente cuando se cumple la condición «residente.numeros_casas». #}{# Genera una sección repetida para cada elemento de «numero in residente.numeros_casas». #}{# Muestra este contenido únicamente cuando se cumple la condición «not forloop.last». #}{# Esta estructura presenta el bloque de formulario de captura de la pantalla. #}			<tr><td>{{ residente.cedula }}</td><td>{{ residente.nombre }} {{ residente.apellido }}</td><td>{{ residente.telefono|default:'Sin teléfono' }}</td><td>{{ residente.correo|default:'-' }}</td><td>Residente</td><td>{% if residente.numeros_casas %}{% for numero in residente.numeros_casas %}Casa {{ numero }}{% if not forloop.last %}, {% endif %}{% endfor %}{% else %}Sin casa{% endif %}</td><td class="text-end text-nowrap"><a href="{% url 'editar_residente_directorio' residente.id_residente %}" class="btn btn-sm btn-outline-primary" title="Editar"><i class="fa-solid fa-pen-to-square"></i><span class="visually-hidden">Editar residente</span></a> <form method="post" class="d-inline" onsubmit="return confirm('¿Eliminar este residente?');">{% csrf_token %}<input type="hidden" name="action" value="delete_residente"><input type="hidden" name="residente_id" value="{{ residente.id_residente }}"><button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar"><i class="fa-solid fa-trash"></i><span class="visually-hidden">Eliminar residente</span></button></form></td></tr>
+			{% endfor %}
+{# Muestra este contenido únicamente cuando se cumple la condición «not propietarios and not residentes». #}			{% if not propietarios and not residentes %}<tr><td colspan="7" class="text-center text-muted py-4">No hay propietarios ni residentes registrados.</td></tr>{% endif %}
+		</tbody></table></div>
+	</div>
+</div>
+<script>
+	const rolInput = document.getElementById('{{ form.rol.id_for_label }}');
+	const rolOtroInput = document.getElementById('{{ form.rol_otro.id_for_label }}');
+	const campoRolOtro = document.getElementById('campo-rol-otro');
+	const campoCorreo = document.querySelector('.campo-correo');
+	const correoInput = document.getElementById('{{ form.correo.id_for_label }}');
+
+	function actualizarRolOtro() {
+		if (!rolInput || !rolOtroInput || !campoRolOtro) return;
+		const mostrar = rolInput.value === 'Otros';
+		campoRolOtro.classList.toggle('d-none', !mostrar);
+		rolOtroInput.required = mostrar;
+		if (!mostrar) rolOtroInput.value = '';
+		const residente = rolInput.value === 'Residente';
+		if (campoCorreo && correoInput) {
+			correoInput.required = !residente;
+		}
+	}
+
+	if (rolInput) {
+		rolInput.addEventListener('change', actualizarRolOtro);
+		actualizarRolOtro();
+	}
+</script>
+{% endblock %}

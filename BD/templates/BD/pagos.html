@@ -1,0 +1,85 @@
+{# Módulo: Presenta la interfaz y los datos dinámicos de la vista «pagos». #}{# Hereda la estructura común definida en «"BD/basex.html"». #}{% extends "BD/basex.html" %}
+{% load estados %}
+{% load formatos %}
+
+{# Define la sección de plantilla «title», que la vista base o hija completa. #}{% block title %}Pagos | Piemonte{% endblock %}
+{# Define la sección de plantilla «extra_css», que la vista base o hija completa. #}{% block extra_css %}<style>.panel { border: 0; border-radius: 10px; box-shadow: 0 4px 18px rgba(38, 50, 56, .1); }.pago-evidencia { max-width: 90px; max-height: 70px; object-fit: cover; border-radius: 6px; }</style>{% endblock %}
+
+{# Define la sección de plantilla «content», que la vista base o hija completa. #}{% block content %}
+<div class="page-heading">
+{# Muestra este contenido únicamente cuando se cumple la condición «pago_editando». #}    <div class="page-heading-copy"><h1 class="page-heading-title"><span class="page-heading-icon"><i class="fa-solid fa-money-bill-wave"></i></span>{% if pago_editando %}Editar pago{% else %}Registrar pago{% endif %}</h1><p class="page-heading-description">Registra y consulta los pagos de administración de las casas.</p></div>
+    <div class="page-heading-actions"><a href="{% url 'logout' %}" class="btn btn-outline-secondary"><i class="fa-solid fa-right-from-bracket me-2"></i>Cerrar sesión</a></div>
+</div>
+
+
+<div class="card panel form-panel">
+    <div class="card-body p-4 p-md-5">
+{# Esta estructura presenta el bloque de formulario de captura de la pantalla. #}        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="row">
+{# Genera una sección repetida para cada elemento de «field in form». #}                {% for field in form %}
+                <div class="col-md-6 mb-3">
+                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                    {{ field }}
+{# Genera una sección repetida para cada elemento de «error in field.errors». #}                    {% for error in field.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+{# Muestra este contenido únicamente cuando se cumple la condición «form.non_field_errors». #}            {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+{# Muestra este contenido únicamente cuando se cumple la condición «pago_editando». #}            <button type="submit" class="btn btn-success"><i class="fa-solid fa-floppy-disk me-2"></i>{% if pago_editando %}Guardar cambios{% else %}Guardar pago{% endif %}</button>
+{# Muestra este contenido únicamente cuando se cumple la condición «pago_editando». #}            {% if pago_editando %}<a href="{% url 'registrar_pago' %}" class="btn btn-outline-secondary">Cancelar</a>{% endif %}
+        </form>
+    </div>
+</div>
+
+<div class="card panel mt-4">
+    <div class="card-body p-0">
+        <div class="p-4 border-bottom d-flex justify-content-between align-items-center"><h2 class="h5 mb-0">Pagos registrados</h2><span class="badge text-bg-secondary">{{ pagos|length }} total</span></div>
+{# Esta estructura presenta el bloque de formulario de captura de la pantalla. #}        <form method="get" class="row g-3 p-4 border-bottom align-items-end">
+{# Genera una sección repetida para cada elemento de «casa in casas». #}{# Muestra este contenido únicamente cuando se cumple la condición «vivienda_filtro == casa.pk|stringformat:'s'». #}            <div class="col-md-3"><label for="filtro-vivienda-pago" class="form-label">Casa</label><select id="filtro-vivienda-pago" name="vivienda" class="form-select"><option value="">Todas las casas</option>{% for casa in casas %}<option value="{{ casa.pk }}" {% if vivienda_filtro == casa.pk|stringformat:'s' %}selected{% endif %}>Casa {{ casa.numero_casa }}</option>{% endfor %}</select></div>
+            <div class="col-md-2"><label for="filtro-desde-pago" class="form-label">Fecha desde</label><input id="filtro-desde-pago" name="desde" type="date" class="form-control" value="{{ desde_filtro }}" max="{{ hasta_filtro }}"></div>
+            <div class="col-md-2"><label for="filtro-hasta-pago" class="form-label">Fecha hasta</label><input id="filtro-hasta-pago" name="hasta" type="date" class="form-control" value="{{ hasta_filtro }}" min="{{ desde_filtro }}"></div>
+            {% estado_ui 'pago' 'Pagado' as estado_pagado %}
+            {% estado_ui 'pago' 'Pendiente' as estado_pendiente %}
+{# Muestra este contenido únicamente cuando se cumple la condición «estado_filtro == 'Pagado'». #}{# Muestra este contenido únicamente cuando se cumple la condición «estado_filtro == 'Pendiente'». #}            <div class="col-md-2"><label for="filtro-estado-pago" class="form-label">Estado</label><select id="filtro-estado-pago" name="estado" class="form-select"><option value="">Todos</option><option value="Pagado" {% if estado_filtro == 'Pagado' %}selected{% endif %}>{{ estado_pagado.nombre }}</option><option value="Pendiente" {% if estado_filtro == 'Pendiente' %}selected{% endif %}>{{ estado_pendiente.nombre }}</option></select></div>
+            <div class="col-md-3 d-flex gap-2"><button type="submit" class="btn btn-primary"><i class="fa-solid fa-filter me-2"></i>Filtrar</button><a href="{% url 'registrar_pago' %}?registros=1" class="btn btn-outline-secondary">Limpiar</a></div>
+        </form>
+{# Muestra este contenido únicamente cuando se cumple la condición «estado_filtro != 'Pagado'». #}        {% if estado_filtro != 'Pagado' %}
+{# Esta estructura presenta el bloque de sección visual de la pantalla. #}        <section class="p-4 border-bottom" aria-labelledby="saldos-actuales-titulo">
+            <h3 id="saldos-actuales-titulo" class="h6 mb-1">Saldo actual por casa</h3>
+            <p class="text-muted small">Un saldo mayor que cero aparece Pendiente; al confirmarse pagos que lo cubran, la casa queda Al día. Los pagos que superan el saldo se acumulan como Saldo a favor. El filtro de fechas solo afecta el historial de recibos.</p>
+{# Muestra este contenido únicamente cuando se cumple la condición «saldos_actuales_casas». #}            {% if saldos_actuales_casas %}
+            <div class="table-responsive">
+{# Esta estructura presenta el bloque de tabla de resultados de la pantalla. #}                <table class="table table-sm align-middle mb-0">
+                    <thead class="table-light"><tr><th>Casa</th><th>Saldo acumulado</th><th>Saldo a favor</th><th>Estado</th></tr></thead>
+{# Genera una sección repetida para cada elemento de «item in saldos_actuales_casas». #}{# Muestra este contenido únicamente cuando se cumple la condición «item.pendiente». #}{# Muestra este contenido únicamente cuando se cumple la condición «estado_filtro == 'Pendiente'». #}{# Muestra este contenido únicamente cuando se cumple la condición «estado_filtro == 'Pendiente' and not item.pendiente». #}{# Muestra este contenido únicamente cuando se cumple la condición «estado_visual.mensaje». #}                    <tbody>{% for item in saldos_actuales_casas %}{% if item.pendiente %}{% estado_ui 'pago' 'Pendiente' as estado_visual %}{% else %}{% estado_ui 'pago' 'Al día' as estado_visual %}{% endif %}<tr data-current-pending-row data-only-pending="{% if estado_filtro == 'Pendiente' %}true{% else %}false{% endif %}"{% if estado_filtro == 'Pendiente' and not item.pendiente %} hidden{% endif %}><td>Casa {{ item.casa.numero_casa }}</td><td data-house-balance="{{ item.casa.pk }}">${{ item.saldo|moneda }}</td><td>${{ item.saldo_favor|moneda }}</td><td><span data-current-pending-status class="badge" style="background-color: {{ estado_visual.color }}; color: {{ estado_visual.color_texto }};"><span data-status-label>{{ estado_visual.nombre }}</span>{% if estado_visual.mensaje %}<small data-status-message class="d-block fw-normal">{{ estado_visual.mensaje }}</small>{% endif %}</span></td></tr>{% endfor %}</tbody>
+                </table>
+            </div>
+            {% else %}<p class="text-muted small mb-0">No hay casas con propietario para mostrar.</p>{% endif %}
+        </section>
+        {% endif %}
+        <div class="table-responsive registros-scroll">
+{# Esta estructura presenta el bloque de tabla de resultados de la pantalla. #}            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light"><tr><th>Casa</th><th>Valor</th><th>Fecha</th><th>Estado</th><th>Saldo</th><th>Comprobante</th><th>Recibo</th><th class="text-end">Acciones</th></tr></thead>
+                <tbody>
+{# Genera una sección repetida para cada elemento de «pago in pagos». #}                {% for pago in pagos %}
+                    <tr>
+                        <td>Casa {{ pago.id_casa.numero_casa }}</td>
+                        <td>${{ pago.valor|moneda }}</td>
+                        <td>{{ pago.fecha|date:'d/m/Y' }}</td>
+{# Muestra este contenido únicamente cuando se cumple la condición «estado_visual.mensaje». #}                        <td>{% estado_ui 'pago' pago.estado as estado_visual %}<span class="badge" style="background-color: {{ estado_visual.color }}; color: {{ estado_visual.color_texto }};">{{ estado_visual.nombre }}{% if estado_visual.mensaje %}<small class="d-block fw-normal">{{ estado_visual.mensaje }}</small>{% endif %}</span></td>
+                        <td>{% if pago.saldo_restante != None %}${{ pago.saldo_restante|moneda }}{% else %}—{% endif %}</td>
+{# Muestra este contenido únicamente cuando se cumple la condición «pago.evidencia». #}                        <td>{% if pago.evidencia %}<a href="{{ pago.evidencia.url }}" target="_blank" rel="noopener">Ver comprobante</a>{% else %}<span class="text-muted">Sin archivo</span>{% endif %}</td>
+{# Muestra este contenido únicamente cuando se cumple la condición «pago.estado == 'Pagado'». #}                        <td><a href="{% url 'recibo_pago' pago.id_pago %}" class="btn btn-sm {% if pago.estado == 'Pagado' %}btn-outline-success{% else %}btn-outline-warning{% endif %}" title="Descargar recibo PDF"><i class="fa-solid fa-file-pdf me-1"></i>Recibo PDF</a></td>
+{# Muestra este contenido únicamente cuando se cumple la condición «not es_propietario». #}{# Esta estructura presenta el bloque de formulario de captura de la pantalla. #}                        <td class="text-end text-nowrap"><button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#detallePago{{ pago.id_pago }}" title="Ver detalle"><i class="fa-solid fa-eye"></i><span class="visually-hidden">Ver detalle</span></button>{% if not es_propietario %} <a href="{% url 'editar_pago' pago.id_pago %}" class="btn btn-sm btn-outline-primary" title="Editar"><i class="fa-solid fa-pen-to-square"></i><span class="visually-hidden">Editar</span></a> <form method="post" class="d-inline" onsubmit="return confirm('¿Eliminar este pago?');">{% csrf_token %}<input type="hidden" name="action" value="delete"><input type="hidden" name="pago_id" value="{{ pago.id_pago }}"><button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar"><i class="fa-solid fa-trash"></i><span class="visually-hidden">Eliminar</span></button></form>{% endif %}</td>
+                    </tr>
+{# Muestra este contenido únicamente cuando se cumple la condición «estado_visual_detalle.mensaje». #}{# Muestra este contenido únicamente cuando se cumple la condición «pago.saldo_restante». #}{# Muestra este contenido únicamente cuando se cumple la condición «pago.evidencia». #}                    <div class="modal fade" id="detallePago{{ pago.id_pago }}" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h2 class="modal-title fs-5"><i class="fa-solid fa-money-bill-wave me-2"></i>Detalle del pago</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button></div><div class="modal-body"><dl class="row mb-0"><dt class="col-sm-5">Casa</dt><dd class="col-sm-7">Casa {{ pago.id_casa.numero_casa }}</dd><dt class="col-sm-5">Valor</dt><dd class="col-sm-7">${{ pago.valor|moneda }}</dd><dt class="col-sm-5">Fecha</dt><dd class="col-sm-7">{{ pago.fecha|date:'d/m/Y' }}</dd><dt class="col-sm-5">Estado</dt><dd class="col-sm-7">{% estado_ui 'pago' pago.estado as estado_visual_detalle %}<span class="badge" style="background-color: {{ estado_visual_detalle.color }}; color: {{ estado_visual_detalle.color_texto }};">{{ estado_visual_detalle.nombre }}{% if estado_visual_detalle.mensaje %}<small class="d-block fw-normal">{{ estado_visual_detalle.mensaje }}</small>{% endif %}</span></dd><dt class="col-sm-5">Saldo</dt><dd class="col-sm-7">{% if pago.saldo_restante != None %}${{ pago.saldo_restante|moneda }}{% else %}No disponible para este registro histórico{% endif %}</dd><dt class="col-sm-5">Comprobante</dt><dd class="col-sm-7">{% if pago.evidencia %}<a href="{{ pago.evidencia.url }}" target="_blank" rel="noopener">Ver comprobante</a>{% else %}Sin archivo{% endif %}</dd></dl></div></div></div></div>
+                {% empty %}
+                    <tr><td colspan="8" class="text-center text-muted py-4">No hay pagos registrados.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

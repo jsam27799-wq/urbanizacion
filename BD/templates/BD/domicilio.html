@@ -1,0 +1,171 @@
+{# Módulo: Presenta la interfaz y los datos dinámicos de la vista «domicilio». #}{# Hereda la estructura común definida en «"BD/basex.html"». #}{% extends "BD/basex.html" %}
+{% load estados %}
+
+{# Define la sección de plantilla «title», que la vista base o hija completa. #}{% block title %}Registrar domiciliario | Piemonte{% endblock %}
+{# Define la sección de plantilla «extra_css», que la vista base o hija completa. #}{% block extra_css %}<style>.panel { border: 0; border-radius: 10px; box-shadow: 0 4px 18px rgba(38, 50, 56, .1); }</style>{% endblock %}
+
+{# Define la sección de plantilla «content», que la vista base o hija completa. #}{% block content %}
+<div class="page-heading">
+{# Muestra este contenido únicamente cuando se cumple la condición «domicilio_editando». #}    <div class="page-heading-copy"><h1 class="page-heading-title"><span class="page-heading-icon"><i class="fa-solid fa-motorcycle"></i></span>{% if domicilio_editando %}Editar domiciliario{% else %}Registrar domiciliario{% endif %}</h1><p class="page-heading-description">Registra el ingreso del domiciliario y la casa que visita.</p></div>
+    <div class="page-heading-actions"><a href="{% url 'logout' %}" class="btn btn-outline-secondary"><i class="fa-solid fa-right-from-bracket me-2"></i>Cerrar sesión</a></div>
+</div>
+
+
+<div class="card panel form-panel">
+    <div class="card-body p-4 p-md-5">
+{# Esta estructura presenta el bloque de formulario de captura de la pantalla. #}        <form method="post">
+            {% csrf_token %}
+            <div class="row">
+{# Genera una sección repetida para cada elemento de «field in form». #}                {% for field in form %}
+                <div class="col-md-6 mb-3">
+                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                    {{ field }}
+{# Genera una sección repetida para cada elemento de «error in field.errors». #}                    {% for error in field.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+{# Muestra este contenido únicamente cuando se cumple la condición «form.non_field_errors». #}            {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+            <button type="submit" class="btn btn-success"><i class="fa-solid fa-floppy-disk me-2"></i>Guardar domiciliario</button>
+{# Muestra este contenido únicamente cuando se cumple la condición «domicilio_editando». #}            {% if domicilio_editando %}<a href="{% url 'registrar_domicilio' %}" class="btn btn-outline-secondary">Cancelar</a>{% endif %}
+        </form>
+    </div>
+</div>
+
+<div class="card panel mt-4">
+    <div class="card-body p-0">
+        <div class="p-4 border-bottom d-flex justify-content-between align-items-center">
+            <h2 class="h5 mb-0">Domiciliarios registrados</h2>
+            <span class="badge text-bg-secondary">{{ domicilios|length }} total</span>
+        </div>
+{# Esta estructura presenta el bloque de formulario de captura de la pantalla. #}        <form method="get" class="row g-3 p-4 border-bottom align-items-end">
+            <div class="col-md-6">
+                <label for="filtro-vivienda-domicilio" class="form-label">Filtrar por casa</label>
+                <select id="filtro-vivienda-domicilio" name="vivienda" class="form-select">
+                    <option value="">Todas las casas</option>
+{# Genera una sección repetida para cada elemento de «casa in casas». #}{# Muestra este contenido únicamente cuando se cumple la condición «vivienda_filtro == casa.pk|stringformat:'s'». #}                    {% for casa in casas %}<option value="{{ casa.pk }}" {% if vivienda_filtro == casa.pk|stringformat:'s' %}selected{% endif %}>Casa {{ casa.numero_casa }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3"><button type="submit" class="btn btn-primary"><i class="fa-solid fa-filter me-2"></i>Filtrar</button><a href="{% url 'registrar_domicilio' %}?registros=1" class="btn btn-outline-secondary ms-2">Limpiar</a></div>
+        </form>
+        <div class="table-responsive registros-scroll">
+{# Esta estructura presenta el bloque de tabla de resultados de la pantalla. #}            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr><th>Nombre</th><th>Teléfono</th><th>Vehículo</th><th>Casa</th><th>Estado</th><th>Tiempo</th><th>Fecha de creación</th><th class="text-end">Acciones</th></tr>
+                </thead>
+                <tbody>
+{# Genera una sección repetida para cada elemento de «domicilio in domicilios». #}                {% for domicilio in domicilios %}
+{# Prepara el contexto local «proceso=domicilio.domicilio_procesos|first» para los elementos siguientes. #}                    {% with proceso=domicilio.domicilio_procesos|first %}
+                    <tr data-domicilio-row data-proceso-fecha="{{ proceso.fecha|date:'U' }}" data-proceso-estado="{{ proceso.estado|default:'PENDIENTE' }}" data-tiempo-restante="{{ proceso.tiempo_restante|default_if_none:tiempo_domiciliario_segundos }}" data-limite-segundos="{{ tiempo_domiciliario_segundos }}">
+                        <td>{{ domicilio.nombre }} {{ domicilio.apellido }}</td>
+                        <td>{{ domicilio.telefono_negocio }}</td>
+{# Muestra este contenido únicamente cuando se cumple la condición «domicilio.vehiculo_placa». #}                        <td>{{ domicilio.vehiculo_tipo|default:'Sin vehículo' }}{% if domicilio.vehiculo_placa %} ({{ domicilio.vehiculo_placa }}){% endif %}</td>
+{# Muestra este contenido únicamente cuando se cumple la condición «proceso». #}                        <td>{% if proceso %}Casa {{ proceso.id_casa.numero_casa }}{% else %}Sin casa{% endif %}</td>
+                        <td>{% estado_ui 'domicilio' proceso.estado as estado_visual %}<span class="estado-domicilio badge" style="background-color: {{ estado_visual.color }}; color: {{ estado_visual.color_texto }};"><span data-status-label>{{ estado_visual.nombre }}</span></span></td>
+{# Muestra este contenido únicamente cuando se cumple la condición «proceso». #}                        <td><span class="temporizador">{% if proceso %}{{ tiempo_domiciliario_formateado }}{% else %}--{% endif %}</span></td>
+{# Muestra este contenido únicamente cuando se cumple la condición «proceso». #}                        <td>{% if proceso %}{{ proceso.fecha|date:'d/m/Y H:i:s' }}{% else %}--{% endif %}</td>
+                        <td class="text-end text-nowrap">
+{# Muestra este contenido únicamente cuando se cumple la condición «proceso and proceso.estado != 'ENTREGADO' and proceso.estado != 'ENTREGADO_TARDE'». #}                            {% if proceso and proceso.estado != 'ENTREGADO' and proceso.estado != 'ENTREGADO_TARDE' %}
+{# Esta estructura presenta el bloque de formulario de captura de la pantalla. #}                            <form method="post" class="d-inline">
+                                {% csrf_token %}<input type="hidden" name="action" value="delivered"><input type="hidden" name="domicilio_id" value="{{ domicilio.id_domicilio }}"><input type="hidden" name="tiempo_restante" value="{{ tiempo_domiciliario_segundos }}" data-tiempo-input>
+                                <button type="submit" class="btn btn-sm btn-outline-success" title="Marcar entregado"><i class="fa-solid fa-check"></i><span class="visually-hidden">Marcar entregado</span></button>
+                            </form>
+                            {% endif %}
+                            <a href="{% url 'editar_domicilio' domicilio.id_domicilio %}" class="btn btn-sm btn-outline-primary" title="Editar"><i class="fa-solid fa-pen-to-square"></i><span class="visually-hidden">Editar</span></a>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#detalleDomicilio{{ domicilio.id_domicilio }}" title="Ver detalle"><i class="fa-solid fa-eye"></i><span class="visually-hidden">Ver detalle</span></button>
+{# Esta estructura presenta el bloque de formulario de captura de la pantalla. #}                            <form method="post" class="d-inline" onsubmit="return confirm('¿Eliminar este domiciliario?');">
+                                {% csrf_token %}<input type="hidden" name="action" value="delete"><input type="hidden" name="domicilio_id" value="{{ domicilio.id_domicilio }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar"><i class="fa-solid fa-trash"></i><span class="visually-hidden">Eliminar</span></button>
+                            </form>
+                        </td>
+                    </tr>
+                    <div class="modal fade" id="detalleDomicilio{{ domicilio.id_domicilio }}" tabindex="-1" aria-labelledby="detalleDomicilioLabel{{ domicilio.id_domicilio }}" aria-hidden="true">
+                        <div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content">
+                            <div class="modal-header"><h2 class="modal-title fs-5" id="detalleDomicilioLabel{{ domicilio.id_domicilio }}"><i class="fa-solid fa-motorcycle me-2"></i>Detalle del domiciliario</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button></div>
+                            <div class="modal-body"><div class="row g-3">
+                                <div class="col-md-6"><strong>Nombre:</strong><br>{{ domicilio.nombre }} {{ domicilio.apellido }}</div>
+                                <div class="col-md-6"><strong>Teléfono:</strong><br>{{ domicilio.telefono_negocio }}</div>
+                                <div class="col-md-6"><strong>Descripción:</strong><br>{{ domicilio.descripcion_negocio|default:'Sin descripción' }}</div>
+                                <div class="col-md-6"><strong>Vehículo:</strong><br>{{ domicilio.vehiculo_tipo|default:'Sin vehículo' }}</div>
+                                <div class="col-md-6"><strong>Placa:</strong><br>{{ domicilio.vehiculo_placa|default:'Sin placa' }}</div>
+{# Muestra este contenido únicamente cuando se cumple la condición «proceso». #}                                <div class="col-md-6"><strong>Casa:</strong><br>{% if proceso %}Casa {{ proceso.id_casa.numero_casa }}{% else %}Sin casa{% endif %}</div>
+{# Muestra este contenido únicamente cuando se cumple la condición «domicilio.residente_secundario». #}                                <div class="col-md-6"><strong>Persona autorizante:</strong><br>{% if domicilio.residente_secundario %}{{ domicilio.residente_secundario.nombre }} {{ domicilio.residente_secundario.apellido }}{% elif domicilio.propietario_autorizador %}{{ domicilio.propietario_autorizador.nombre }} {{ domicilio.propietario_autorizador.apellido }}{% else %}Sin seleccionar{% endif %}</div>
+{# Muestra este contenido únicamente cuando se cumple la condición «domicilio.residente_secundario». #}                                <div class="col-md-6"><strong>Teléfono de contacto:</strong><br>{% if domicilio.residente_secundario %}{{ domicilio.residente_secundario.telefono|default:'Sin teléfono' }}{% elif domicilio.propietario_autorizador %}{{ domicilio.propietario_autorizador.telefono|default:'Sin teléfono' }}{% else %}Sin teléfono{% endif %}</div>
+{# Muestra este contenido únicamente cuando se cumple la condición «domicilio.autoriza == 'SI'». #}                                <div class="col-md-6"><strong>Autoriza:</strong><br>{% if domicilio.autoriza == 'SI' %}Sí{% else %}No{% endif %}</div>
+{# Muestra este contenido únicamente cuando se cumple la condición «proceso». #}                                <div class="col-md-6"><strong>Estado:</strong><br>{% if proceso %}{% estado_ui 'domicilio' proceso.estado as estado_visual_detalle %}<span class="badge" style="background-color: {{ estado_visual_detalle.color }}; color: {{ estado_visual_detalle.color_texto }};">{{ estado_visual_detalle.nombre }}</span>{% else %}Sin estado{% endif %}</div>
+                            </div></div>
+                        </div></div>
+                    </div>
+                    {% endwith %}
+                {% empty %}
+                    <tr><td colspan="8" class="text-center text-muted py-4">No hay domiciliarios registrados.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{# Define la sección de plantilla «extra_js», que la vista base o hija completa. #}{% block extra_js %}
+{{ casas_residentes|json_script:"casas-residentes-domicilio-data" }}
+<script>
+(() => {
+    const vivienda = document.querySelector('[name="vivienda"]');
+    const persona = document.querySelector('[name="persona_autorizante"]');
+    const casasResidentes = JSON.parse(document.getElementById('casas-residentes-domicilio-data').textContent);
+    const actualizarPersonas = () => {
+        if (!vivienda || !persona) return;
+        const seleccionado = persona.value;
+        const personas = casasResidentes[vivienda.value] || [];
+        persona.innerHTML = '<option value="">Seleccione una persona</option>';
+        personas.forEach((item) => persona.add(new Option(`${item.nombre} - Tel: ${item.telefono}`, item.id)));
+        if (!personas.length && vivienda.value) persona.add(new Option('No hay residentes asociados a esta casa', ''));
+        if (personas.some((item) => String(item.id) === seleccionado)) persona.value = seleccionado;
+    };
+    if (vivienda) {
+        vivienda.addEventListener('change', actualizarPersonas);
+        actualizarPersonas();
+    }
+
+    const actualizarTemporizadores = () => {
+        document.querySelectorAll('[data-domicilio-row]').forEach((fila) => {
+            const estado = fila.dataset.procesoEstado;
+            const fecha = Number(fila.dataset.procesoFecha) * 1000;
+            const tiempoGuardado = Number(fila.dataset.tiempoRestante) || 0;
+            const limiteMs = Number(fila.dataset.limiteSegundos) * 1000;
+            const contador = fila.querySelector('.temporizador');
+            const etiqueta = fila.querySelector('.estado-domicilio');
+            const form = fila.querySelector('form:not([onsubmit])');
+            const tiempoInput = form ? form.querySelector('[data-tiempo-input]') : null;
+            const formatear = (segundos) => `${Math.floor(segundos / 60).toString().padStart(2, '0')}:${(segundos % 60).toString().padStart(2, '0')}`;
+            if (estado === 'ENTREGADO' || estado === 'ENTREGADO_TARDE') {
+                contador.textContent = formatear(tiempoGuardado);
+                window.aplicarEstadoVisual(etiqueta, 'domicilio', estado);
+                return;
+            }
+            if (estado === 'DEMORADO') {
+                contador.textContent = 'Demorado';
+                window.aplicarEstadoVisual(etiqueta, 'domicilio', estado);
+                return;
+            }
+            if (!fecha) return;
+            const restante = limiteMs - (Date.now() - fecha);
+            if (restante <= 0) {
+                if (tiempoInput) tiempoInput.value = '0';
+                contador.textContent = 'Demorado';
+                window.aplicarEstadoVisual(etiqueta, 'domicilio', 'DEMORADO');
+                return;
+            }
+            const segundosRestantes = Math.ceil(restante / 1000);
+            if (tiempoInput) tiempoInput.value = segundosRestantes;
+            contador.textContent = formatear(segundosRestantes);
+            window.aplicarEstadoVisual(etiqueta, 'domicilio', estado);
+        });
+    };
+
+    actualizarTemporizadores();
+    window.setInterval(actualizarTemporizadores, 1000);
+})();
+</script>
+{% endblock %}

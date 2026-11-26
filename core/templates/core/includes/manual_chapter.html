@@ -1,0 +1,32 @@
+{% load static %}
+<article class="manual-chapter" id="{{ manual_prefix }}-{{ manual_section_id }}" aria-labelledby="{{ manual_prefix }}-{{ manual_section_id }}-title">
+    <header class="manual-chapter__header">
+        <span class="manual-chapter__number">{{ manual_section_number }}</span>
+        <div class="manual-chapter__heading">
+            <span class="manual-chapter__eyebrow">Apartado {{ manual_section_number }}</span>
+            <h3 id="{{ manual_prefix }}-{{ manual_section_id }}-title">{{ manual_section_title }}</h3>
+            <p>{{ manual_section_summary }}</p>
+        </div>
+        <span class="manual-chapter__state">Captura real</span>
+    </header>
+    <div class="manual-chapter__layout">
+        <figure class="manual-chapter__capture" data-manual-capture="{{ manual_prefix }}-{{ manual_section_id }}">
+            <div class="manual-chapter__browser-bar" aria-hidden="true">
+                <span class="manual-chapter__browser-dots"><i></i><i></i><i></i></span>
+                <span>PIEMONTE · PÁGINA PÚBLICA</span>
+            </div>
+            <img class="manual-chapter__image" src="{% static manual_section_capture %}" alt="Captura de pantalla del apartado {{ manual_section_title }}" loading="lazy" decoding="async">
+            <figcaption>Vista pública de escritorio: {{ manual_section_title }}</figcaption>
+        </figure>
+        <section class="manual-chapter__explanation" aria-label="Explicación de {{ manual_section_title }}">
+            <span class="manual-chapter__eyebrow">Lectura de la captura</span>
+            <h4>¿Cómo funciona?</h4>
+            <p>{{ manual_section_explanation }}</p>
+            <ol>
+                <li><span>1</span><div><strong>{{ manual_section_step_one }}</strong><small>{{ manual_section_step_one_detail }}</small></div></li>
+                <li><span>2</span><div><strong>{{ manual_section_step_two }}</strong><small>{{ manual_section_step_two_detail }}</small></div></li>
+                <li><span>3</span><div><strong>{{ manual_section_step_three }}</strong><small>{{ manual_section_step_three_detail }}</small></div></li>
+            </ol>
+        </section>
+    </div>
+</article>

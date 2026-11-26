@@ -1,0 +1,156 @@
+{# Módulo: Presenta la interfaz y los datos dinámicos de la vista «reportes». #}{# Hereda la estructura común definida en «"BD/basex.html"». #}{% extends "BD/basex.html" %}
+
+{# Define la sección de plantilla «title», que la vista base o hija completa. #}{% block title %}Reportes | Piemonte{% endblock %}
+{# Define la sección de plantilla «extra_css», que la vista base o hija completa. #}{% block extra_css %}
+<style>
+.reportes-intro { display: flex; align-items: end; justify-content: space-between; gap: 1rem; margin-bottom: 1.5rem; }
+.reportes-intro h1 { margin: 0; color: #173f3a; font-size: 1.8rem; font-weight: 800; }
+.reportes-intro p { margin: .35rem 0 0; color: #657773; }
+.reportes-form { border: 1px solid #dce9e5; border-radius: 16px; background: #fff; box-shadow: 0 12px 28px rgba(38, 50, 56, .08); }
+.reportes-form .form-label { color: #29423e; font-size: .78rem; font-weight: 800; }
+.reportes-form .form-control, .reportes-form .form-select { min-height: 46px; border-color: #d6e5e1; border-radius: 9px; }
+.reportes-form .form-control:focus, .reportes-form .form-select:focus { border-color: #16a085; box-shadow: 0 0 0 3px rgba(22, 160, 133, .14); }
+.reportes-help { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1.5rem; }
+.reportes-help article { padding: 1.15rem; border: 1px solid #dce9e5; border-radius: 12px; background: #f7fbfa; }
+.reportes-help i { color: #16866f; font-size: 1.2rem; }
+.reportes-help h2 { margin: .7rem 0 .25rem; font-size: 1rem; color: #173f3a; }
+.reportes-help p { margin: 0; color: #657773; font-size: .85rem; }
+.reportes-resultados { margin-top: 1.5rem; border: 1px solid #dce9e5; border-radius: 16px; background: #fff; box-shadow: 0 12px 28px rgba(38, 50, 56, .08); }
+.reportes-resultados .table { margin: 0; font-size: .86rem; }
+.reportes-resultados .table th { color: #fff; background: #173f3a; white-space: nowrap; }
+.reportes-resultados .table td, .reportes-resultados .table th { padding: .75rem .85rem; vertical-align: top; }
+.reportes-vacio { padding: 2.5rem 1rem; color: #657773; text-align: center; }
+@media (max-width: 768px) { .reportes-intro { align-items: start; flex-direction: column; } .reportes-help { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{# Define la sección de plantilla «content», que la vista base o hija completa. #}{% block content %}
+<div class="page-heading">
+    <div class="page-heading-copy"><h1 class="page-heading-title"><span class="page-heading-icon"><i class="fa-solid fa-file-pdf"></i></span>Generar reportes</h1><p class="page-heading-description">Consulta la información de Piemonte y descárgala en PDF.</p></div>
+    <div class="page-heading-actions"><a href="{% url 'logout' %}" class="btn btn-outline-secondary"><i class="fa-solid fa-right-from-bracket me-2"></i>Cerrar sesión</a></div>
+</div>
+
+<div class="reportes-intro">
+    <div><h1>Centro de reportes</h1><p>Selecciona el módulo y aplica los filtros que necesites.</p></div>
+</div>
+
+<div class="reportes-form">
+    <div class="card-body p-4 p-md-5">
+{# Esta estructura presenta el bloque de formulario de captura de la pantalla. #}        <form method="get" action="{% url 'reportes' %}">
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <label for="reporte" class="form-label">Módulo del reporte</label>
+                    <select id="reporte" name="reporte" class="form-select" required>
+{# Genera una sección repetida para cada elemento de «value, label in report_options». #}{# Muestra este contenido únicamente cuando se cumple la condición «value in date_filter_reports». #}{# Muestra este contenido únicamente cuando se cumple la condición «value in house_filter_reports». #}{# Muestra este contenido únicamente cuando se cumple la condición «reporte_seleccionado == value». #}                        {% for value, label in report_options %}<option value="{{ value }}" data-has-date="{% if value in date_filter_reports %}true{% else %}false{% endif %}" data-has-house="{% if value in house_filter_reports %}true{% else %}false{% endif %}" {% if reporte_seleccionado == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6" id="house-filter-field">
+                    <label for="casa" class="form-label">Casa</label>
+                    <select id="casa" name="casa" class="form-select">
+                        <option value="">Todas las casas</option>
+{# Genera una sección repetida para cada elemento de «casa in casas». #}{# Muestra este contenido únicamente cuando se cumple la condición «filtro_casa == casa.pk|stringformat:'s'». #}                        {% for casa in casas %}<option value="{{ casa.pk }}" {% if filtro_casa == casa.pk|stringformat:'s' %}selected{% endif %}>Casa {{ casa.numero_casa }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6" id="date-from-filter-field">
+                    <label for="desde" class="form-label">Fecha desde</label>
+                    <input id="desde" name="desde" type="date" class="form-control" value="{{ filtro_desde }}">
+                </div>
+                <div class="col-md-6" id="date-to-filter-field">
+                    <label for="hasta" class="form-label">Fecha hasta</label>
+                    <input id="hasta" name="hasta" type="date" class="form-control" value="{{ filtro_hasta }}">
+                </div>
+            </div>
+            <div class="d-flex flex-wrap gap-2 mt-4">
+                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-filter me-2"></i>Consultar información</button>
+                <button type="submit" class="btn btn-success" formaction="{% url 'reporte_pdf' %}" formtarget="_blank"><i class="fa-solid fa-file-pdf me-2"></i>Generar PDF</button>
+{# Muestra este contenido únicamente cuando se cumple la condición «reporte_seleccionado != 'pagos'». #}                <button id="download-payments-excel" type="submit" class="btn btn-outline-success" formaction="{% url 'reporte_excel_pagos' %}" formtarget="_blank" {% if reporte_seleccionado != 'pagos' %}hidden disabled{% endif %}><i class="fa-solid fa-file-excel me-2"></i>Descargar Excel</button>
+                <button type="reset" class="btn btn-outline-secondary"><i class="fa-solid fa-rotate-left me-2"></i>Limpiar filtros</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="reportes-resultados">
+    <div class="p-4 border-bottom d-flex justify-content-between align-items-center gap-3 flex-wrap">
+        <div>
+            <h2 class="h5 mb-1">{{ reporte_titulo }}</h2>
+            <p class="text-muted mb-0">
+{# Muestra este contenido únicamente cuando se cumple la condición «filtro_desde or filtro_hasta». #}                {% if filtro_desde or filtro_hasta %}Fechas: {{ filtro_desde|default:'inicio' }} a {{ filtro_hasta|default:'hoy' }}{% else %}Sin filtro de fechas{% endif %}
+{# Muestra este contenido únicamente cuando se cumple la condición «filtro_casa_numero». #}                {% if filtro_casa_numero %} · Casa {{ filtro_casa_numero }}{% endif %}
+            </p>
+        </div>
+        <span class="badge text-bg-secondary">{{ reporte_rows|length }} registros</span>
+    </div>
+{# Muestra este contenido únicamente cuando se cumple la condición «reporte_rows». #}    {% if reporte_rows %}
+    <div class="table-responsive">
+{# Esta estructura presenta el bloque de tabla de resultados de la pantalla. #}        <table class="table table-hover align-middle mb-0">
+{# Genera una sección repetida para cada elemento de «header in reporte_headers». #}            <thead><tr>{% for header in reporte_headers %}<th>{{ header }}</th>{% endfor %}</tr></thead>
+{# Genera una sección repetida para cada elemento de «row in reporte_rows». #}{# Genera una sección repetida para cada elemento de «value in row». #}            <tbody>{% for row in reporte_rows %}<tr>{% for value in row %}<td>{{ value|default:'-' }}</td>{% endfor %}</tr>{% endfor %}</tbody>
+        </table>
+    </div>
+    {% else %}<div class="reportes-vacio"><i class="fa-solid fa-folder-open fa-2x mb-3"></i><div>No hay registros para la casa y los filtros seleccionados.</div></div>{% endif %}
+{# Muestra este contenido únicamente cuando se cumple la condición «resumen_pagos». #}    {% if resumen_pagos %}
+    <div class="p-4 border-top">
+        <h3 class="h6 mb-3">Resumen del mes seleccionado</h3>
+        <div class="row g-3">
+            <div class="col-sm-3"><div class="border rounded p-3 h-100"><div class="text-muted small">Total registrado</div><strong>{{ resumen_pagos.total_formatted }}</strong></div></div>
+            <div class="col-sm-3"><div class="border rounded p-3 h-100"><div class="text-muted small">Total pagado</div><strong>{{ resumen_pagos.pagado_formatted }}</strong></div></div>
+            <div class="col-sm-3"><div class="border rounded p-3 h-100"><div class="text-muted small">Pagos no confirmados</div><strong>{{ resumen_pagos.pendiente_formatted }}</strong></div></div>
+            <div class="col-sm-3"><div class="border rounded p-3 h-100"><div class="text-muted small">Saldo actual de las casas incluidas</div><strong>{{ resumen_pagos.saldo_actual_formatted }}</strong></div></div>
+        </div>
+        <p class="text-muted small mt-2 mb-0">{{ resumen_pagos.cantidad }} pagos incluidos. El saldo actual descuenta únicamente pagos confirmados, no incluye casas sin propietario y puede incluir pagos de meses anteriores.</p>
+        <p class="small mt-2 mb-0"><strong>{{ resumen_pagos.fecha_etiqueta }}:</strong> {{ resumen_pagos.fecha_resumen }}</p>
+    </div>
+    {% endif %}
+</div>
+
+<div class="reportes-help">
+{# Esta estructura presenta el bloque de contenido independiente de la pantalla. #}    <article><i class="fa-solid fa-filter"></i><h2>Filtros combinables</h2><p>Filtra por una casa, por todas las casas o por un periodo específico.</p></article>
+{# Esta estructura presenta el bloque de contenido independiente de la pantalla. #}    <article><i class="fa-solid fa-receipt"></i><h2>Pagos con cartera</h2><p>El reporte de pagos incluye valor, estado, cartera y saldo pendiente por casa.</p></article>
+{# Esta estructura presenta el bloque de contenido independiente de la pantalla. #}    <article><i class="fa-solid fa-print"></i><h2>Listo para imprimir</h2><p>El PDF se abre en una pestaña nueva para guardar o imprimir.</p></article>
+</div>
+{% endblock %}
+
+{# Define la sección de plantilla «extra_js», que la vista base o hija completa. #}{% block extra_js %}
+<script>
+(() => {
+    const reportSelect = document.getElementById('reporte');
+    const houseField = document.getElementById('house-filter-field');
+    const dateFromField = document.getElementById('date-from-filter-field');
+    const dateToField = document.getElementById('date-to-filter-field');
+    const houseInput = document.getElementById('casa');
+    const dateFromInput = document.getElementById('desde');
+    const dateToInput = document.getElementById('hasta');
+    const excelButton = document.getElementById('download-payments-excel');
+
+    const updateFilters = () => {
+        const selected = reportSelect.selectedOptions[0];
+        const hasHouse = selected.dataset.hasHouse === 'true';
+        const hasDate = selected.dataset.hasDate === 'true';
+        excelButton.hidden = selected.value !== 'pagos';
+        excelButton.disabled = selected.value !== 'pagos';
+        houseField.hidden = !hasHouse;
+        houseInput.disabled = !hasHouse;
+        dateFromField.hidden = !hasDate;
+        dateToField.hidden = !hasDate;
+        dateFromInput.disabled = !hasDate;
+        dateToInput.disabled = !hasDate;
+    };
+
+    const syncDateBounds = () => {
+        dateFromInput.max = dateToInput.value;
+        dateToInput.min = dateFromInput.value;
+    };
+
+    reportSelect.addEventListener('change', updateFilters);
+    dateFromInput.addEventListener('change', syncDateBounds);
+    dateToInput.addEventListener('change', syncDateBounds);
+    document.querySelector('.reportes-form form').addEventListener('reset', () => window.setTimeout(() => {
+        updateFilters();
+        syncDateBounds();
+    }));
+    updateFilters();
+    syncDateBounds();
+})();
+</script>
+{% endblock %}

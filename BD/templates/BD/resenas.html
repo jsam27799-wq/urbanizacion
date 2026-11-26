@@ -1,0 +1,62 @@
+{# Módulo: Presenta la interfaz y los datos dinámicos de la vista «resenas». #}{# Hereda la estructura común definida en «"BD/basex.html"». #}{% extends "BD/basex.html" %}
+
+{# Define la sección de plantilla «title», que la vista base o hija completa. #}{% block title %}Reseñas | Piemonte{% endblock %}
+{# Define la sección de plantilla «content», que la vista base o hija completa. #}{% block content %}
+<div class="page-heading">
+    <div class="page-heading-copy"><h1 class="page-heading-title"><span class="page-heading-icon"><i class="fa-solid fa-star"></i></span>Reseñas de residentes</h1><p class="page-heading-description">Aprueba las opiniones que aparecerán en la página principal.</p></div>
+    <div class="page-heading-actions"><a href="{% url 'logout' %}" class="btn btn-outline-secondary"><i class="fa-solid fa-right-from-bracket me-2"></i>Cerrar sesión</a></div>
+</div>
+
+
+<div class="card panel">
+    <div class="card-body p-0">
+        <div class="p-4 border-bottom d-flex justify-content-between align-items-center">
+            <h2 class="h5 mb-0">Reseñas recibidas</h2>
+            <span class="badge text-bg-secondary">{{ resenas|length }} total</span>
+        </div>
+		<form method="get" class="row g-3 p-4 border-bottom align-items-end">
+			<div class="col-md-4">
+				<label for="filtro-estado-resena" class="form-label">Estado</label>
+				<select id="filtro-estado-resena" name="estado" class="form-select">
+					<option value="">Todos</option>
+					<option value="aprobada" {% if estado_filtro == 'aprobada' %}selected{% endif %}>Aprobada</option>
+					<option value="pendiente" {% if estado_filtro == 'pendiente' %}selected{% endif %}>Pendiente</option>
+				</select>
+			</div>
+			<div class="col-md-4">
+				<label for="filtro-calificacion-resena" class="form-label">Calificación</label>
+				<select id="filtro-calificacion-resena" name="calificacion" class="form-select">
+					<option value="">Todas</option>
+					{% for valor, etiqueta in calificaciones %}<option value="{{ valor }}" {% if calificacion_filtro == valor|stringformat:'s' %}selected{% endif %}>{{ etiqueta }}</option>{% endfor %}
+				</select>
+			</div>
+			<div class="col-md-3 d-flex gap-2">
+				<button type="submit" class="btn btn-primary"><i class="fa-solid fa-filter me-2"></i>Filtrar</button>
+				<a href="{% url 'resenas' %}" class="btn btn-outline-secondary" title="Limpiar filtros"><i class="fa-solid fa-rotate-left"></i><span class="visually-hidden">Limpiar filtros</span></a>
+			</div>
+		</form>
+        <div class="table-responsive registros-scroll">
+{# Esta estructura presenta el bloque de tabla de resultados de la pantalla. #}            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light"><tr><th>Residente</th><th>Calificación</th><th>Comentario</th><th>Fecha</th><th>Estado</th><th class="text-end">Acciones</th></tr></thead>
+                <tbody>
+{# Genera una sección repetida para cada elemento de «resena in resenas». #}                {% for resena in resenas %}
+                    <tr>
+                        <td>{{ resena.nombre }}</td>
+                        <td><span class="text-warning">★ {{ resena.calificacion }}/5</span></td>
+                        <td>{{ resena.comentario }}</td>
+                        <td>{{ resena.fecha_creacion|date:'d/m/Y H:i' }}</td>
+{# Muestra este contenido únicamente cuando se cumple la condición «resena.aprobada». #}                        <td>{% if resena.aprobada %}<span class="badge text-bg-success">Aprobada</span>{% else %}<span class="badge text-bg-warning">Pendiente</span>{% endif %}</td>
+                        <td class="text-end text-nowrap">
+{# Muestra este contenido únicamente cuando se cumple la condición «resena.aprobada». #}{# Muestra este contenido únicamente cuando se cumple la condición «resena.aprobada». #}{# Muestra este contenido únicamente cuando se cumple la condición «resena.aprobada». #}{# Esta estructura presenta el bloque de formulario de captura de la pantalla. #}                            <form method="post" class="d-inline">{% csrf_token %}<input type="hidden" name="resena_id" value="{{ resena.id_resena }}"><input type="hidden" name="action" value="{% if resena.aprobada %}reject{% else %}approve{% endif %}"><button type="submit" class="btn btn-sm {% if resena.aprobada %}btn-outline-warning{% else %}btn-outline-success{% endif %}">{% if resena.aprobada %}Ocultar{% else %}Aprobar{% endif %}</button></form>
+{# Esta estructura presenta el bloque de formulario de captura de la pantalla. #}                            <form method="post" class="d-inline" onsubmit="return confirm('¿Eliminar esta reseña?');">{% csrf_token %}<input type="hidden" name="resena_id" value="{{ resena.id_resena }}"><input type="hidden" name="action" value="delete"><button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar"><i class="fa-solid fa-trash"></i></button></form>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="6" class="text-center text-muted py-4">Todavía no hay reseñas recibidas.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

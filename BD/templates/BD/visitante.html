@@ -1,0 +1,176 @@
+{# Módulo: Presenta la interfaz y los datos dinámicos de la vista «visitante». #}{# Hereda la estructura común definida en «"BD/basex.html"». #}	{% extends "BD/basex.html" %}
+	{% load estados %}
+
+{# Define la sección de plantilla «title», que la vista base o hija completa. #}	{% block title %}Registrar visitante | Piemonte{% endblock %}
+{# Define la sección de plantilla «extra_css», que la vista base o hija completa. #}	{% block extra_css %}<style>.panel { border: 0; border-radius: 10px; box-shadow: 0 4px 18px rgba(38, 50, 56, .1); }</style>{% endblock %}
+{# Define la sección de plantilla «content», que la vista base o hija completa. #}	{% block content %}
+				<div class="page-heading">
+{# Muestra este contenido únicamente cuando se cumple la condición «visitante_editando». #}					<div class="page-heading-copy"><h1 class="page-heading-title"><span class="page-heading-icon"><i class="fa-solid fa-person-walking-arrow-right"></i></span>{% if visitante_editando %}Editar visitante{% else %}Registrar visitante{% endif %}</h1><p class="page-heading-description">El ingreso se registra automáticamente con fecha y hora del servidor.</p></div>
+					<div class="page-heading-actions"><a href="{% url 'logout' %}" class="btn btn-outline-secondary"><i class="fa-solid fa-right-from-bracket me-2"></i>Cerrar sesión</a></div>
+				</div>
+
+
+				<div class="card panel form-panel">
+					<div class="card-body p-4 p-md-5">
+{# Esta estructura presenta el bloque de formulario de captura de la pantalla. #}						<form method="post" data-ajax-form>
+							{% csrf_token %}
+	<div class="row">
+{# Genera una sección repetida para cada elemento de «field in form». #}                            {% for field in form %}
+		<div class="col-md-6 mb-3 campo-{{ field.name }}">
+			<label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+			{{ field }}
+{# Genera una sección repetida para cada elemento de «error in field.errors». #}									{% for error in field.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+		</div>
+	{% endfor %}
+	</div>
+{# Muestra este contenido únicamente cuando se cumple la condición «form.non_field_errors». #}							{% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+{# Muestra este contenido únicamente cuando se cumple la condición «visitante_editando». #}							<button type="submit" class="btn btn-success"><i class="fa-solid fa-floppy-disk me-2"></i>{% if visitante_editando %}Guardar cambios{% else %}Registrar ingreso{% endif %}</button>
+{# Muestra este contenido únicamente cuando se cumple la condición «visitante_editando». #}							{% if visitante_editando %}<a href="{% url 'registrar_visitante' %}" class="btn btn-outline-secondary">Cancelar</a>{% endif %}
+						</form>
+					</div>
+				</div>
+				<div class="card panel mt-4">
+					<div class="card-body p-0">
+						<div class="p-4 border-bottom d-flex justify-content-between align-items-center"><h2 class="h5 mb-0">Visitantes registrados</h2><span class="badge text-bg-secondary">{{ visitantes|length }} total</span></div>
+						<form method="get" class="row g-3 p-4 border-bottom align-items-end" data-ajax-form>
+							<div class="col-md-4">
+								<label for="filtro-casa-visitante" class="form-label">Casa</label>
+								<select id="filtro-casa-visitante" name="casa" class="form-select">
+									<option value="">Todas las casas</option>
+									{% for casa in casas_filtro %}<option value="{{ casa.pk }}" {% if casa_filtro == casa.pk|stringformat:'s' %}selected{% endif %}>Casa {{ casa.numero_casa }}</option>{% endfor %}
+								</select>
+							</div>
+							<div class="col-md-3">
+								<label for="filtro-entrada-visitante" class="form-label">Tipo de entrada</label>
+								<select id="filtro-entrada-visitante" name="entrada" class="form-select">
+									<option value="">Todas</option>
+									<option value="SI" {% if entrada_filtro == 'SI' %}selected{% endif %}>Vehicular</option>
+									<option value="NO" {% if entrada_filtro == 'NO' %}selected{% endif %}>Peatonal</option>
+								</select>
+							</div>
+							<div class="col-md-3">
+								<label for="filtro-documento-visitante" class="form-label">Documento</label>
+								<input id="filtro-documento-visitante" name="documento" type="search" class="form-control" value="{{ documento_filtro }}" placeholder="Buscar documento">
+							</div>
+							<div class="col-md-2 d-flex gap-2">
+								<button type="submit" class="btn btn-primary"><i class="fa-solid fa-filter me-2"></i>Filtrar</button>
+								<a href="{% url 'registrar_visitante' %}?registros=1" class="btn btn-outline-secondary" title="Limpiar filtros"><i class="fa-solid fa-rotate-left"></i><span class="visually-hidden">Limpiar filtros</span></a>
+							</div>
+						</form>
+{# Esta estructura presenta el bloque de tabla de resultados de la pantalla. #}						<div class="table-responsive registros-scroll"><table class="table table-hover align-middle mb-0"><thead class="table-light"><tr><th>Documento</th><th>Nombre</th><th>Tipo visitante</th><th>Entrada</th><th>Vehículo</th><th>Personas</th><th>Casa</th><th>Ingreso</th><th>Estado</th><th class="text-end">Acciones</th></tr></thead><tbody>
+{# Genera una sección repetida para cada elemento de «visitante in visitantes». #}
+{% for visitante in visitantes %}
+    {% with proceso=visitante.procesos_visitante.0 %}
+    <tr>
+        <td>{{ visitante.cedula }}</td>
+        <td>{{ visitante.nombre }} {{ visitante.apellido }}</td>
+        <td>{{ visitante.tipo_v }}</td>
+        <td>{% if visitante.vehiculo_trae == 'SI' %}<span class="badge text-bg-info">Vehicular</span>{% else %}<span class="badge text-bg-secondary">Peatonal</span>{% endif %}</td>
+        <td>{% if visitante.vehiculo_trae == 'SI' %}{{ visitante.vehiculo_tipo }}{% if visitante.placa_v %} · {{ visitante.placa_v }}{% endif %}<br><small class="text-muted">{{ visitante.conductor }}</small>{% else %}--{% endif %}</td>
+        <td>{{ visitante.cantidad_personas }}</td>
+        <td>{% if proceso %}Casa {{ proceso.id_casa.numero_casa }}{% else %}Sin vivienda{% endif %}</td>
+        <td>{% if proceso %}{{ proceso.fecha|date:'d/m/Y H:i' }}{% else %}Sin registro{% endif %}</td>
+        <td>{% if proceso %}{% estado_ui 'visitante' proceso.estado as estado_visual %}<span class="badge" style="background-color: {{ estado_visual.color }}; color: {{ estado_visual.color_texto }};">{{ estado_visual.nombre }}</span>{% else %}<span class="text-muted">Sin estado</span>{% endif %}</td>
+        <td class="text-end text-nowrap">
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#detalleVisitante{{ visitante.id_visitante }}" title="Ver detalle"><i class="fa-solid fa-eye"></i><span class="visually-hidden">Ver detalle</span></button>
+            <a href="{% url 'editar_visitante' visitante.id_visitante %}" class="btn btn-sm btn-outline-primary" title="Editar estado"><i class="fa-solid fa-pen-to-square"></i><span class="visually-hidden">Editar estado</span></a>
+            <form method="post" class="d-inline" data-ajax-form onsubmit="return confirm('¿Eliminar este visitante?');">{% csrf_token %}<input type="hidden" name="action" value="delete"><input type="hidden" name="visitante_id" value="{{ visitante.id_visitante }}"><button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar"><i class="fa-solid fa-trash"></i><span class="visually-hidden">Eliminar</span></button></form>
+        </td>
+    </tr>
+    <div class="modal fade" id="detalleVisitante{{ visitante.id_visitante }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+            <div class="modal-header"><h2 class="modal-title fs-5"><i class="fa-solid fa-person-walking me-2"></i>Detalle del visitante</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button></div>
+            <div class="modal-body"><dl class="row mb-0">
+                <dt class="col-sm-5">Nombre</dt><dd class="col-sm-7">{{ visitante.nombre }} {{ visitante.apellido }}</dd>
+                <dt class="col-sm-5">Cédula</dt><dd class="col-sm-7">{{ visitante.cedula }}</dd>
+                <dt class="col-sm-5">Tipo</dt><dd class="col-sm-7">{{ visitante.tipo_v|default:'Sin especificar' }}</dd>
+                <dt class="col-sm-5">Entrada</dt><dd class="col-sm-7">{% if visitante.vehiculo_trae == 'SI' %}Vehicular{% else %}Peatonal{% endif %}</dd>
+                <dt class="col-sm-5">Vehículo</dt><dd class="col-sm-7">{{ visitante.vehiculo_tipo|default:'No aplica' }}{% if visitante.placa_v %} - {{ visitante.placa_v }}{% endif %}</dd>
+                <dt class="col-sm-5">Conductor</dt><dd class="col-sm-7">{{ visitante.conductor|default:'No aplica' }}</dd>
+                <dt class="col-sm-5">Personas</dt><dd class="col-sm-7">{{ visitante.cantidad_personas }}</dd>
+                <dt class="col-sm-5">Vivienda</dt><dd class="col-sm-7">{% if proceso %}Casa {{ proceso.id_casa.numero_casa }}{% else %}Sin vivienda{% endif %}</dd>
+                <dt class="col-sm-5">Estado</dt><dd class="col-sm-7">{% if proceso %}{% estado_ui 'visitante' proceso.estado as estado_visual %}{{ estado_visual.nombre }}{% else %}Sin estado{% endif %}</dd>
+                <dt class="col-sm-5">Hora de salida</dt><dd class="col-sm-7">{% if proceso and proceso.fecha_salida %}{{ proceso.fecha_salida|date:'d/m/Y H:i' }}{% else %}Sin registrar{% endif %}</dd>
+            </dl></div>
+        </div></div>
+    </div>
+    {% endwith %}
+{% empty %}
+    <tr><td colspan="10" class="text-center text-muted py-4">No hay visitantes registrados.</td></tr>
+{% endfor %}
+						</tbody></table></div>
+					</div>
+				</div>
+	{% endblock %}
+
+{# Define la sección de plantilla «extra_js», que la vista base o hija completa. #}{% block extra_js %}
+{{ casas_residentes|json_script:"casas-residentes-data" }}
+<script>
+(() => {
+	const selector = document.querySelector('[name="vehiculo_trae"]');
+	const tipoVisitante = document.querySelector('[name="tipo_v"]');
+	const tipoVisitanteOtro = document.querySelector('[name="tipo_visitante_otro"]');
+	const vivienda = document.querySelector('[name="vivienda"]');
+	const residente = document.querySelector('[name="persona_autorizante"]');
+	const autoriza = document.querySelector('[name="autoriza"]');
+	const casasResidentes = JSON.parse(document.getElementById('casas-residentes-data').textContent);
+	const camposVehiculares = ['vehiculo_tipo', 'placa_v', 'conductor'];
+	const actualizarTipoVisitante = () => {
+		const campo = tipoVisitanteOtro && tipoVisitanteOtro.closest('.campo-tipo_visitante_otro');
+		const mostrar = tipoVisitante && tipoVisitante.value === 'Otro';
+		if (campo) campo.hidden = !mostrar;
+		if (tipoVisitanteOtro) tipoVisitanteOtro.required = mostrar;
+	};
+	const actualizarResidentes = () => {
+		if (!vivienda || !residente) return;
+		const seleccionado = residente.value;
+		const residentes = casasResidentes[vivienda.value] || [];
+		residente.innerHTML = '<option value="">Seleccione una persona</option>';
+		residentes.forEach((item) => {
+			const opcion = new Option(`${item.nombre} - Tel: ${item.telefono}`, item.id);
+			residente.add(opcion);
+		});
+		if (!residentes.length && vivienda.value) {
+			residente.add(new Option('No hay residentes asociados a esta casa', ''));
+		}
+		if (residentes.some((item) => String(item.id) === seleccionado)) residente.value = seleccionado;
+		const campoResidente = residente.closest('.campo-residente_secundario');
+		const campoAutoriza = autoriza && autoriza.closest('.campo-autoriza');
+		if (campoResidente) campoResidente.hidden = !vivienda.value;
+		if (campoAutoriza) campoAutoriza.hidden = !residente.value;
+	};
+	const actualizarCampos = () => {
+		const vehicular = selector && selector.value === 'SI';
+		camposVehiculares.forEach((nombre) => {
+			const campo = document.querySelector(`.campo-${nombre}`);
+			if (campo) campo.hidden = !vehicular;
+		});
+	};
+	if (selector) {
+		selector.addEventListener('change', actualizarCampos);
+		actualizarCampos();
+	}
+	if (tipoVisitante) {
+		tipoVisitante.addEventListener('change', actualizarTipoVisitante);
+		actualizarTipoVisitante();
+	}
+	if (vivienda) {
+		vivienda.addEventListener('change', actualizarResidentes);
+		if (residente) residente.addEventListener('change', actualizarResidentes);
+		actualizarResidentes();
+	}
+})();
+</script>
+<script>
+document.querySelectorAll('.registros-scroll th, .modal-body dt').forEach((etiqueta) => {
+	if (etiqueta.textContent.trim() === 'Vivienda') {
+		etiqueta.textContent = 'Casa';
+	}
+});
+document.querySelectorAll('.registros-scroll td, .modal-body dd').forEach((celda) => {
+	if (celda.textContent.trim() === 'Sin vivienda') {
+		celda.textContent = 'Sin casa';
+	}
+});
+</script>
+{% endblock %}

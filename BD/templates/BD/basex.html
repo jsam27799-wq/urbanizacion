@@ -1,0 +1,819 @@
+{# Módulo: Presenta la interfaz y los datos dinámicos de la vista «basex». #}{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{# Define la sección de plantilla «title», que la vista base o hija completa. #}    <title>{% block title %}Piemonte{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="{% static 'core/css/floating-help.css' %}?v=7" rel="stylesheet">
+    <link href="{% static 'core/css/notification-modal.css' %}" rel="stylesheet">
+    <style>
+        :root { --sidebar-width: 250px; --primary-color: #173f3a; --accent-color: #16a085; }
+        body { background: #eef4f2; color: #263238; font-family: 'Manrope', 'Segoe UI', sans-serif; }
+        .sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; overflow-y: auto; background-color: var(--primary-color); color: #fff; padding-top: 1rem; transition: all 0.3s; z-index: 1000; }
+        .sidebar .brand-title { font-size: 1.25rem; font-weight: bold; padding: 0 1.5rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar .brand-title a { color: inherit; text-decoration: none; }
+        .sidebar .nav-link { color: rgba(255,255,255,0.8); padding: 0.64rem 1.5rem; display: flex; align-items: center; gap: 10px; font-size: .92rem; transition: 0.2s; text-decoration: none; }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active { color: #fff; background-color: var(--accent-color); }
+        .main-content { min-height: 100vh; margin-left: var(--sidebar-width); padding: 2rem; background: radial-gradient(circle at 95% 0%, rgba(114, 215, 181, .13), transparent 26rem); }
+        .registros-scroll { max-height: 430px; overflow-y: auto; }
+        .table-pagination-hidden { display: none !important; }
+        .registration-form-hidden, .registration-list-hidden { display: none !important; }
+        .page-heading { position: sticky; top: 0; z-index: 900; display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; min-height: 70px; margin-bottom: 1.5rem; padding: .65rem 1.5rem .65rem 1.75rem; overflow: visible; color: #fff; background: linear-gradient(118deg, #123b36 0%, #1a5148 58%, #287565 100%); border: 0; border-radius: 18px; box-shadow: 0 16px 30px rgba(23, 63, 58, .22); }
+        .page-heading::after { content: ''; position: absolute; right: 11%; top: -55px; width: 210px; height: 210px; border: 1px solid rgba(114, 215, 181, .18); border-radius: 50%; box-shadow: 0 0 0 22px rgba(114, 215, 181, .04), 0 0 0 44px rgba(114, 215, 181, .025); pointer-events: none; }
+        .page-heading-copy { min-width: 0; }
+        .page-heading-copy::before { content: 'PIEMONTE  /  GESTIÓN'; display: block; margin: 0 0 .45rem 3.35rem; color: #72d7b5; font-size: .63rem; font-weight: 800; letter-spacing: .16em; }
+        .page-heading-copy, .page-heading-actions { position: relative; z-index: 1; }
+        .page-heading-icon { display: inline-flex; align-items: center; justify-content: center; width: 46px; height: 46px; flex: 0 0 46px; color: #173f3a; background: #b9efdc; border-radius: 12px; font-size: 1.1rem; box-shadow: 0 5px 14px rgba(0, 0, 0, .12); }
+        .page-heading-title { display: flex; align-items: center; gap: .8rem; margin: 0; color: #fff; font-size: 1.3rem; font-weight: 800; letter-spacing: 0; }
+        .page-heading-description { margin: .35rem 0 0a 3.35rem; color: rgba(255, 255, 255, .72); font-size: .92rem; }
+        .page-heading-actions { flex: 0 0 auto; }
+        .page-heading-actions .btn { color: #fff; border-color: rgba(255, 255, 255, .5); border-radius: 9px; }
+        .page-heading-actions .btn:hover { color: #173f3a; background: #fff; border-color: #fff; }
+        .form-panel { position: relative; overflow: hidden; border: 1px solid #dce9e5; border-radius: 16px; background: rgba(255, 255, 255, .96); box-shadow: 0 12px 28px rgba(38, 50, 56, .08); }
+        .form-panel::before { content: ''; display: block; height: 4px; background: linear-gradient(90deg, #16a085, #72d7b5, transparent); }
+        .form-panel .card-body { padding: 2rem 2.25rem !important; }
+        .form-panel form .row { row-gap: .35rem; }
+        .form-panel form label { margin-bottom: .45rem; color: #29423e; font-size: .78rem; font-weight: 800; letter-spacing: .02em; }
+        .form-panel form .form-control, .form-panel form .form-select { min-height: 45px; color: #233b37; background-color: #f7fbfa; border: 1px solid #d6e5e1; border-radius: 9px; box-shadow: inset 0 1px 2px rgba(23, 63, 58, .03); transition: border-color .2s, box-shadow .2s, background-color .2s; }
+        .form-panel form textarea.form-control { min-height: 108px; resize: vertical; }
+        .form-panel form .form-control:focus, .form-panel form .form-select:focus { background: #fff; border-color: #16a085; box-shadow: 0 0 0 3px rgba(22, 160, 133, .14); }
+        .form-panel form input[type="file"].form-control { padding: .52rem .7rem; background: #f1f8f6; }
+        .form-panel form input[type="file"].form-control::file-selector-button { margin: -.52rem .8rem -.52rem -.7rem; padding: .68rem .85rem; color: #17614f; background: #dff3ec; border: 0; border-right: 1px solid #c6e7dc; font-weight: 700; }
+        .form-panel form .btn-success { padding: .65rem 1.05rem; color: #fff; background: #16866f; border-color: #16866f; border-radius: 9px; font-weight: 700; box-shadow: 0 5px 12px rgba(22, 134, 111, .2); }
+        .form-panel form .btn-success:hover { background: #126c5a; border-color: #126c5a; transform: translateY(-1px); }
+        .form-panel form .btn-outline-secondary { border-radius: 9px; }
+        .form-panel form .text-danger { font-size: .78rem; font-weight: 600; }
+        .tipo-movimiento { display: inline-flex; align-items: center; gap: .35rem; min-width: 6.5rem; justify-content: center; border-radius: 999px; font-weight: 800; }
+        .tipo-movimiento-visitante { color: #084298; background: #cfe2ff; }
+        .tipo-movimiento-domicilio { color: #664d03; background: #fff3cd; }
+        .tipo-movimiento-paquete { color: #055160; background: #cff4fc; }
+        .tipo-movimiento-pago { color: #0f5132; background: #d1e7dd; }
+        .tipo-movimiento-nota { color: #58151c; background: #f8d7da; }
+        .tipo-movimiento-otro { color: #41464b; background: #e2e3e5; }
+        .sidebar-toggle { display: none; }
+        @media (max-width: 1024px) { .main-content { overflow-x: clip; } }
+        @media (max-width: 768px) {
+            .sidebar { margin-left: 0; transform: translateX(-100%); box-shadow: 12px 0 32px rgba(0,0,0,.2); }
+            .sidebar.active { margin-left: 0; transform: translateX(0); }
+            .main-content { margin-left: 0; padding: 4.5rem 1rem 1.25rem; }
+            .sidebar-toggle { position: fixed; top: .75rem; left: .75rem; z-index: 1100; display: inline-flex; align-items: center; justify-content: center; width: 42px; height: 42px; color: #fff; background: var(--primary-color); border: 0; border-radius: 11px; box-shadow: 0 5px 14px rgba(23,63,58,.22); }
+            .sidebar-toggle:focus-visible { outline: 3px solid #72d7b5; outline-offset: 2px; }
+        }
+        @media (max-width: 576px) {
+            .main-content { padding: 4.25rem .75rem 1rem; }
+            .page-heading { align-items: flex-start; flex-direction: column; gap: .7rem; min-height: 0; margin-bottom: 1rem; padding: .65rem 1rem .65rem 1.2rem; border-radius: 14px; }
+            .page-heading-copy::before { margin-left: 0; font-size: .58rem; }
+            .page-heading-title { align-items: flex-start; gap: .6rem; font-size: 1rem; line-height: 1.25; overflow-wrap: anywhere; }
+            .page-heading-icon { width: 40px; height: 40px; flex-basis: 40px; }
+            .page-heading-description { margin: .4rem 0 0; font-size: .82rem; line-height: 1.45; }
+            .page-heading-actions { width: 100%; }
+            .page-heading-actions .btn { width: 100%; justify-content: center; }
+        }
+        @media (max-width: 767.98px) {
+            .main-content .card { min-width: 0; }
+            .main-content .card-header { gap: .5rem; flex-wrap: wrap; }
+            .main-content .card-header > * { min-width: 0; }
+            .main-content .form-panel { border-radius: 12px; }
+            .main-content .form-panel .card-body { padding: .85rem !important; }
+            .main-content .form-panel form .row { row-gap: .45rem; }
+            .main-content .form-panel form label { margin-bottom: .25rem; font-size: .76rem; line-height: 1.3; }
+            .main-content form .form-control,
+            .main-content form .form-select { box-sizing: border-box; min-width: 0; max-width: 100%; width: 100%; min-height: 41px; padding: .45rem .55rem; font-size: .86rem; }
+            .main-content form textarea.form-control { width: 100%; min-height: 92px; }
+            .main-content form input[type="text"].form-control,
+            .main-content form input[type="email"].form-control,
+            .main-content form input[type="number"].form-control,
+            .main-content form input[type="date"].form-control,
+            .main-content form input[type="time"].form-control,
+            .main-content form input[type="url"].form-control,
+            .main-content form input[type="password"].form-control,
+            .main-content form input[type="search"].form-control,
+            .main-content form input[type="tel"].form-control { box-sizing: border-box; min-width: 0; max-width: 100%; width: 100%; }
+            .main-content form input[type="file"].form-control { min-height: 43px; padding: .4rem; font-size: .74rem; }
+            .main-content form input[type="file"].form-control::file-selector-button { margin: -.4rem .45rem -.4rem -.4rem; padding: .65rem .5rem; font-size: .72rem; }
+            .main-content form .mobile-form-grid { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .55rem; margin: 0; }
+            .main-content form .mobile-form-grid > .mobile-form-field { width: auto; max-width: none; min-width: 0; margin: 0 !important; padding: 0; }
+            .main-content form .mobile-form-grid > .mobile-form-field-wide { grid-column: 1 / -1; }
+            .main-content form.mobile-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .55rem; }
+            .main-content form.mobile-form-grid > .mobile-form-field { width: auto; min-width: 0; margin: 0 !important; }
+            .main-content form.mobile-form-grid > .mobile-form-field-wide,
+            .main-content form.mobile-form-grid > .mobile-form-action,
+            .main-content form.mobile-form-grid > .alert { grid-column: 1 / -1; }
+            .main-content .form-panel form > button[type="submit"] { width: 100%; margin-top: 1rem; }
+            .main-content .form-panel form > .mobile-form-action,
+            .main-content .reportes-form form > .mobile-form-action { width: 100%; margin-top: 1rem !important; }
+            .main-content .form-panel form > .mobile-form-action { display: flex; flex-wrap: wrap; gap: .5rem; }
+            .main-content .form-panel form > .mobile-form-action > button[type="submit"] { flex: 1 1 100%; }
+            .main-content .reportes-form form > .mobile-form-action { display: flex; flex-wrap: wrap; gap: .5rem; }
+            .main-content .reportes-form form > .mobile-form-action > button { flex: 1 1 auto; }
+            .main-content form.mobile-form-grid .d-flex:has(> button[type="submit"]) { flex-wrap: wrap; }
+            .main-content form .mobile-form-grid .form-check,
+            .main-content form .mobile-form-grid .form-switch { min-height: 40px; }
+            .main-content .table-responsive:not(.dashboard-table-wrap) { max-height: none; overflow: visible; border-radius: 8px; }
+            .main-content .mobile-card-table { display: block; width: 100%; min-width: 0; margin-bottom: 0; font-size: .82rem; }
+            .main-content .mobile-card-table thead { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+            .main-content .mobile-card-table tbody { display: grid; gap: .55rem; padding: .45rem; }
+            .main-content .mobile-card-table tbody tr { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .4rem .55rem; padding: .65rem; border: 1px solid #dce8e4; border-radius: 10px; background: #fff; box-shadow: 0 2px 7px rgba(23, 63, 58, .06); }
+            .main-content .mobile-card-table tbody tr:last-child { border-bottom: 1px solid #dce8e4; }
+            .main-content .mobile-card-table tbody td { display: flex; min-width: 0; flex-direction: column; justify-content: center; gap: .12rem; padding: .3rem .35rem; border: 0; line-height: 1.35; overflow-wrap: anywhere; }
+            .main-content .mobile-card-table tbody td::before { content: attr(data-mobile-label); color: #687b77; font-size: .63rem; font-weight: 800; letter-spacing: .025em; text-transform: uppercase; }
+            .main-content .mobile-card-table tbody td[colspan] { grid-column: 1 / -1; align-items: center; padding: .8rem .3rem; text-align: center; }
+            .main-content .mobile-card-table tbody td[colspan]::before { content: none; }
+            .main-content .mobile-card-table tbody td.mobile-actions-cell { grid-column: 1 / -1; flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: .35rem; border-top: 1px solid #edf1f0; }
+            .main-content .mobile-card-table .btn-group { flex-wrap: wrap; gap: .2rem; }
+            .main-content .mobile-card-table .btn { white-space: normal; }
+        }
+        @media (max-width: 380px) {
+            .main-content form .mobile-form-grid,
+            .main-content form.mobile-form-grid { grid-template-columns: minmax(0, 1fr); }
+            .main-content form .mobile-form-grid > .mobile-form-field-wide,
+            .main-content form.mobile-form-grid > .mobile-form-field-wide,
+            .main-content form.mobile-form-grid > .mobile-form-action,
+            .main-content form.mobile-form-grid > .alert { grid-column: 1; }
+            .main-content .form-panel .card-body { padding: .7rem !important; }
+        }
+    </style>
+{# Define la sección de plantilla «extra_css», que la vista base o hija completa. #}    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <button class="sidebar-toggle" type="button" aria-controls="adminSidebar" aria-expanded="false" aria-label="Abrir menú de navegación">
+        <i class="fa-solid fa-bars" aria-hidden="true"></i>
+    </button>
+{# Esta estructura presenta el bloque de navegación de la pantalla. #}    <nav class="sidebar" id="adminSidebar">
+        <div class="brand-title text-center text-uppercase">
+            <i class="fa-solid fa-building-user me-2"></i><a href="/">Piemonte</a>
+        </div>
+        <div class="nav flex-column mt-3">
+{# Muestra este contenido únicamente cuando se cumple la condición «request.user.is_staff or request.user.is_superuser or perms.BD.add_visitante». #}{# Muestra este contenido únicamente cuando se cumple la condición «active_nav == 'dashboard'». #}            {% if request.user.is_staff or request.user.is_superuser or perms.BD.add_visitante %}<a href="{% url 'dashboard' %}" class="nav-link {% if active_nav == 'dashboard' %}active{% endif %}"><i class="fa-solid fa-chart-line"></i> Dashboard</a>{% endif %}
+{# Muestra este contenido únicamente cuando se cumple la condición «request.user.is_staff or request.user.is_superuser or perms.auth.add_user». #}{# Muestra este contenido únicamente cuando se cumple la condición «active_nav == 'casas'». #}            {% if request.user.is_staff or request.user.is_superuser or perms.auth.add_user %}<a href="{% url 'registrar_casa' %}" class="nav-link {% if active_nav == 'casas' %}active{% endif %}"><i class="fa-solid fa-house"></i> Casas</a>{% endif %}
+{# Muestra este contenido únicamente cuando se cumple la condición «request.user.is_staff or request.user.is_superuser or perms.auth.add_user». #}{# Muestra este contenido únicamente cuando se cumple la condición «active_nav == 'propietarios'». #}            {% if request.user.is_staff or request.user.is_superuser or perms.auth.add_user %}<a href="{% url 'registrar_propietario' %}" class="nav-link {% if active_nav == 'propietarios' %}active{% endif %}"><i class="fa-solid fa-users"></i> Propietario / Residente</a>{% endif %}
+{# Muestra este contenido únicamente cuando se cumple la condición «request.user.is_staff or request.user.is_superuser or perms.BD.add_visitante». #}{# Muestra este contenido únicamente cuando se cumple la condición «active_nav == 'visitantes'». #}            {% if request.user.is_staff or request.user.is_superuser or perms.BD.add_visitante %}<a href="{% url 'registrar_visitante' %}" class="nav-link {% if active_nav == 'visitantes' %}active{% endif %}"><i class="fa-solid fa-person-walking-arrow-right"></i> Registrar visitante</a>{% endif %}
+{# Muestra este contenido únicamente cuando se cumple la condición «request.user.is_staff or request.user.is_superuser or perms.auth.add_user». #}{# Muestra este contenido únicamente cuando se cumple la condición «active_nav == 'usuarios'». #}            {% if request.user.is_staff or request.user.is_superuser or perms.auth.add_user %}<a href="{% url 'usuarios' %}" class="nav-link {% if active_nav == 'usuarios' %}active{% endif %}"><i class="fa-solid fa-user-lock"></i> Usuarios</a>{% endif %}
+{# Muestra este contenido únicamente cuando se cumple la condición «request.user.is_staff or request.user.is_superuser or perms.BD.add_domicilio». #}{# Muestra este contenido únicamente cuando se cumple la condición «active_nav == 'domicilios'». #}            {% if request.user.is_staff or request.user.is_superuser or perms.BD.add_domicilio %}<a href="{% url 'registrar_domicilio' %}" class="nav-link {% if active_nav == 'domicilios' %}active{% endif %}"><i class="fa-solid fa-motorcycle"></i> Domiciliarios</a>{% endif %}
+{# Muestra este contenido únicamente cuando se cumple la condición «request.user.is_staff or request.user.is_superuser or perms.BD.add_paquete». #}{# Muestra este contenido únicamente cuando se cumple la condición «active_nav == 'paquetes'». #}            {% if request.user.is_staff or request.user.is_superuser or perms.BD.add_paquete %}<a href="{% url 'registrar_paquete' %}" class="nav-link {% if active_nav == 'paquetes' %}active{% endif %}"><i class="fa-solid fa-box"></i> Paquetes</a>{% endif %}
+{# Muestra este contenido únicamente cuando se cumple la condición «request.user.is_staff or request.user.is_superuser or perms.BD.add_notas». #}{# Muestra este contenido únicamente cuando se cumple la condición «active_nav == 'notas'». #}            {% if request.user.is_staff or request.user.is_superuser or perms.BD.add_notas %}<a href="{% url 'registrar_nota' %}" class="nav-link {% if active_nav == 'notas' %}active{% endif %}"><i class="fa-solid fa-clipboard"></i> Notas</a>{% endif %}
+{# Muestra este contenido únicamente cuando se cumple la condición «request.user.is_staff or request.user.is_superuser or perms.auth.add_user or perms.BD.add_pago». #}{# Muestra este contenido únicamente cuando se cumple la condición «active_nav == 'pagos'». #}            {% if request.user.is_staff or request.user.is_superuser or perms.auth.add_user or perms.BD.add_pago %}<a href="{% url 'registrar_pago' %}" class="nav-link {% if active_nav == 'pagos' %}active{% endif %}"><i class="fa-solid fa-money-bill-wave"></i> Pagos</a>{% endif %}
+{# Muestra este contenido únicamente cuando se cumple la condición «request.user.is_staff or request.user.is_superuser or perms.auth.add_user». #}{# Muestra este contenido únicamente cuando se cumple la condición «active_nav == 'resenas'». #}            {% if request.user.is_staff or request.user.is_superuser or perms.auth.add_user %}<a href="{% url 'resenas' %}" class="nav-link {% if active_nav == 'resenas' %}active{% endif %}"><i class="fa-solid fa-star"></i> Reseñas</a>{% endif %}
+{# Muestra este contenido únicamente cuando se cumple la condición «request.user.is_staff or request.user.is_superuser or perms.auth.add_user». #}{# Muestra este contenido únicamente cuando se cumple la condición «active_nav == 'novedades'». #}            {% if request.user.is_staff or request.user.is_superuser or perms.auth.add_user %}<a href="{% url 'registrar_novedad' %}" class="nav-link {% if active_nav == 'novedades' %}active{% endif %}"><i class="fa-solid fa-note-sticky"></i> Novedades</a>{% endif %}
+{# Muestra este contenido únicamente cuando se cumple la condición «request.user.is_staff or request.user.is_superuser or perms.auth.add_user». #}{# Muestra este contenido únicamente cuando se cumple la condición «active_nav == 'reportes'». #}            {% if request.user.is_staff or request.user.is_superuser or perms.auth.add_user %}<a href="{% url 'reportes' %}" class="nav-link {% if active_nav == 'reportes' %}active{% endif %}"><i class="fa-solid fa-file-pdf"></i> Reportes</a>{% endif %}
+{# Muestra este contenido únicamente cuando se cumple la condición «request.user.is_staff or request.user.is_superuser or perms.auth.add_user». #}{# Muestra este contenido únicamente cuando se cumple la condición «active_nav == 'configuracion_cartera'». #}            {% if request.user.is_staff or request.user.is_superuser or perms.auth.add_user %}<a href="{% url 'configuracion_cartera' %}" class="nav-link {% if active_nav == 'configuracion_cartera' %}active{% endif %}"><i class="fa-solid fa-gears"></i> Configuración</a>{% endif %}
+{# Muestra este contenido únicamente cuando se cumple la condición «request.user.is_staff or request.user.is_superuser or perms.auth.add_user». #}{# Muestra este contenido únicamente cuando se cumple la condición «active_nav == 'copias_seguridad'». #}            {% if request.user.is_staff or request.user.is_superuser or perms.auth.add_user %}<a href="{% url 'copias_seguridad' %}" class="nav-link {% if active_nav == 'copias_seguridad' %}active{% endif %}"><i class="fa-solid fa-database"></i> Copias de Seguridad</a>{% endif %}
+        </div>
+    </nav>
+{# Esta estructura presenta el bloque de contenido principal de la pantalla. #}    <main class="main-content">
+{# Define la sección de plantilla «content», que la vista base o hija completa. #}        {% block content %}{% endblock %}
+{% include "core/includes/notification_modal.html" %}
+    </main>
+    {% include "core/includes/floating_help.html" %}
+<div class="modal fade" id="confirmarEliminacionGlobal" tabindex="-1" aria-labelledby="tituloConfirmarEliminacionGlobal" aria-describedby="descripcionConfirmarEliminacionGlobal" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header border-0 pb-0">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-danger-subtle text-danger" style="width: 48px; height: 48px;">
+                        <i class="fa-solid fa-trash-can fs-5"></i>
+                    </span>
+                    <div>
+                        <div class="small text-danger fw-bold text-uppercase">Acción permanente</div>
+                        <h2 class="modal-title fs-5 fw-bold" id="tituloConfirmarEliminacionGlobal">¿Eliminar este elemento?</h2>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body pt-3" id="descripcionConfirmarEliminacionGlobal">
+                <p>Vas a eliminar <strong data-elemento-eliminacion>este elemento</strong>.</p>
+                <div class="alert alert-warning border-0 rounded-3 mb-0">
+                    <i class="fa-solid fa-triangle-exclamation me-2"></i>Esta acción no se puede deshacer.
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger px-4" data-confirmar-eliminacion>
+                    <i class="fa-solid fa-trash-can me-2"></i>Sí, eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+    <div class="modal fade" id="alertaDomiciliarioGlobal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered"><div class="modal-content border-danger">
+            <div class="modal-header bg-danger text-white"><h2 class="modal-title h5"><i class="fa-solid fa-triangle-exclamation me-2"></i>Peligro, domiciliario demorado</h2><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button></div>
+            <div class="modal-body" data-alerta-domiciliario-mensaje>Un domiciliario superó el tiempo de espera y no ha salido.</div>
+            <div class="modal-footer"><button type="button" class="btn btn-danger" data-bs-dismiss="modal">Entendido</button></div>
+        </div></div>
+    </div> <!--ACA SE CAMBIA EL SONIDO DEL AUDIO ALARMA-->
+    <audio id="alarmaDomiciliario" preload="auto" src="{% static 'core/sounds/alarma.mp3' %}"></audio>
+    {{ estados_visualizacion|json_script:"estados-visualizacion" }}
+    <script>
+    (() => {
+        const datosEstados = document.getElementById('estados-visualizacion');
+        const estados = datosEstados ? JSON.parse(datosEstados.textContent) : {};
+        window.aplicarEstadoVisual = (elemento, modulo, estado) => {
+            const visual = (estados[modulo] || {})[estado] || {
+                nombre: estado,
+                color: '#6c757d',
+                color_texto: '#ffffff',
+            };
+            let nombre = elemento.querySelector('[data-status-label]');
+            if (!nombre) {
+                nombre = document.createElement('span');
+                nombre.dataset.statusLabel = '';
+                elemento.replaceChildren(nombre);
+            }
+            nombre.textContent = visual.nombre;
+            elemento.style.backgroundColor = visual.color;
+            elemento.style.color = visual.color_texto;
+        };
+    })();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    (() => {
+        const modalElemento = document.getElementById('confirmarEliminacionGlobal');
+        const nombreElemento = modalElemento.querySelector('[data-elemento-eliminacion]');
+        const botonConfirmar = modalElemento.querySelector('[data-confirmar-eliminacion]');
+        const modal = window.bootstrap ? bootstrap.Modal.getOrCreateInstance(modalElemento) : null;
+        let formularioPendiente = null;
+
+        const prepararFormulariosEliminar = () => {
+            document.querySelectorAll('.main-content form[onsubmit]').forEach((formulario) => {
+                const onsubmit = formulario.getAttribute('onsubmit') || '';
+                const confirmacion = onsubmit.match(/confirm\(\s*(['"])(.*?)\1\s*\)/i);
+                if (!confirmacion || !/eliminar/i.test(confirmacion[2])) return;
+
+                formulario.dataset.confirmDelete = '';
+                if (!formulario.dataset.deleteLabel) {
+                    formulario.dataset.deleteLabel = confirmacion[2]
+                        .replace(/^(?:\u00bf)?eliminar\s+/i, '')
+                        .replace(/\?$/, '')
+                        .trim();
+                }
+                formulario.removeAttribute('onsubmit');
+            });
+        };
+
+        const enviarFormularioPendiente = () => {
+            if (!formularioPendiente) return;
+            if (!formularioPendiente.reportValidity()) return;
+
+            const formulario = formularioPendiente;
+            formularioPendiente = null;
+            formulario.dataset.deleteConfirmed = 'true';
+            if (modal) modal.hide();
+            formulario.requestSubmit();
+        };
+
+        prepararFormulariosEliminar();
+        document.addEventListener('piemonte:contenido-actualizado', prepararFormulariosEliminar);
+        document.addEventListener('submit', (evento) => {
+            const formulario = evento.target;
+            if (!(formulario instanceof HTMLFormElement) || !formulario.hasAttribute('data-confirm-delete')) return;
+            if (formulario.dataset.deleteConfirmed === 'true') {
+                delete formulario.dataset.deleteConfirmed;
+                return;
+            }
+
+            evento.preventDefault();
+            evento.stopImmediatePropagation();
+            formularioPendiente = formulario;
+            nombreElemento.textContent = formulario.dataset.deleteLabel || 'este elemento';
+            if (modal) {
+                modal.show();
+            } else if (window.confirm(`¿Eliminar ${nombreElemento.textContent}?`)) {
+                enviarFormularioPendiente();
+            }
+        }, true);
+
+        botonConfirmar.addEventListener('click', enviarFormularioPendiente);
+        modalElemento.addEventListener('hidden.bs.modal', () => {
+            formularioPendiente = null;
+        });
+    })();
+    </script>
+    <script>
+    (() => {
+        const sidebar = document.getElementById('adminSidebar');
+        const toggle = document.querySelector('.sidebar-toggle');
+        if (!sidebar || !toggle) return;
+
+        const closeMenu = () => {
+            sidebar.classList.remove('active');
+            toggle.setAttribute('aria-expanded', 'false');
+            toggle.setAttribute('aria-label', 'Abrir menú de navegación');
+            toggle.innerHTML = '<i class="fa-solid fa-bars" aria-hidden="true"></i>';
+        };
+
+        toggle.addEventListener('click', () => {
+            const isOpen = sidebar.classList.toggle('active');
+            toggle.setAttribute('aria-expanded', String(isOpen));
+            toggle.setAttribute('aria-label', isOpen ? 'Cerrar menú de navegación' : 'Abrir menú de navegación');
+            toggle.innerHTML = `<i class="fa-solid fa-${isOpen ? 'xmark' : 'bars'}" aria-hidden="true"></i>`;
+        });
+        sidebar.querySelectorAll('.nav-link').forEach(link => link.addEventListener('click', closeMenu));
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape') closeMenu();
+        });
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) closeMenu();
+        });
+    })();
+    </script>
+    <script>
+    window.inicializarEtiquetasTablaMovil = () => {
+        document.querySelectorAll('.main-content .table-responsive table:not(.movimientos-table)').forEach(table => {
+            const headerRow = table.querySelector('thead tr:last-child');
+            if (!headerRow) return;
+            const headers = [...headerRow.querySelectorAll('th')].map(header => header.textContent.trim().replace(/\s+/g, ' '));
+            table.classList.add('mobile-card-table');
+            table.querySelectorAll('tbody tr').forEach(row => {
+                [...row.cells].forEach((cell, index) => {
+                    if (cell.tagName === 'TD' && !cell.hasAttribute('colspan') && headers[index]) {
+                        cell.dataset.mobileLabel = headers[index];
+                    }
+                    if (index === row.cells.length - 1 && cell.querySelector('a, button, input[type="submit"]')) {
+                        cell.classList.add('mobile-actions-cell');
+                    }
+                });
+            });
+        });
+    };
+    window.inicializarEtiquetasTablaMovil();
+    document.addEventListener('piemonte:contenido-actualizado', window.inicializarEtiquetasTablaMovil);
+    </script>
+    <script>
+    window.inicializarVistaRegistro = () => {
+        const content = document.querySelector('.main-content');
+        const heading = content && content.querySelector('.page-heading');
+        const registerRoutes = [
+            '/residentes/', '/visitantes/', '/casas/', '/guardias/', '/usuarios/',
+            '/propietarios/', '/domicilios/', '/paquetes/', '/novedades/', '/notas/', '/pagos/',
+        ];
+        if (!registerRoutes.some(route => window.location.pathname.startsWith(route))) return;
+        const registrationForm = content && content.querySelector('.form-panel form[method="post"]');
+        const formPanel = registrationForm ? registrationForm.closest('.form-panel') : null;
+        if (!content || !heading || !formPanel) return;
+
+        const tables = [...content.querySelectorAll('table')];
+        if (!tables.length) return;
+
+        const formSection = formPanel.closest('section');
+        const formRoot = formSection &&
+            formSection.parentElement.classList.contains('row') &&
+            tables.some(table => formSection.parentElement.contains(table))
+            ? formSection
+            : formPanel;
+        const listRoots = [...new Set(tables.map(table => {
+            const section = table.closest('section');
+            if (section && section.parentElement.classList.contains('row') &&
+                [...section.parentElement.children].some(child => child.contains(formPanel))) {
+                return section;
+            }
+            return table.closest('.card') || table.closest('.table-responsive') || table;
+        }))].filter(root => root !== formRoot && !root.contains(formPanel));
+        if (!listRoots.length) return;
+
+        const url = new URL(window.location.href);
+        const editPath = /\/\d+\/editar\/?$/.test(url.pathname);
+        const activeNavLink = document.querySelector('.sidebar .nav-link.active');
+        const cancelLink = [...document.querySelectorAll('.main-content a[href]')]
+            .find(link => link.textContent.trim().toLocaleLowerCase() === 'cancelar');
+        const canonicalPath = editPath && cancelLink
+            ? new URL(cancelLink.href, window.location.origin).pathname
+            : editPath && activeNavLink
+                ? new URL(activeNavLink.href, window.location.origin).pathname
+            : url.pathname.replace(/\/\d+\/editar\/?$/, '/');
+        const showingRecords = url.searchParams.get('registros') === '1';
+        formRoot.hidden = showingRecords;
+        formRoot.classList.toggle('registration-form-hidden', showingRecords);
+        listRoots.forEach(root => {
+            root.hidden = !showingRecords;
+            root.classList.toggle('registration-list-hidden', !showingRecords);
+        });
+
+        const actionBar = document.createElement('div');
+        actionBar.className = 'd-flex justify-content-end my-3';
+        const actionLink = document.createElement('a');
+        actionLink.className = 'btn btn-outline-primary';
+        if (showingRecords) {
+            actionLink.href = canonicalPath;
+            actionLink.innerHTML = '<i class="fa-solid fa-plus me-2" aria-hidden="true"></i>Nuevo registro';
+            listRoots[0].insertAdjacentElement('beforebegin', actionBar);
+        } else {
+            url.search = '';
+            url.searchParams.set('registros', '1');
+            actionLink.href = `${canonicalPath}${url.search}`;
+            actionLink.innerHTML = '<i class="fa-solid fa-list me-2" aria-hidden="true"></i>Ver Registros';
+            const submitButton = [...registrationForm.querySelectorAll('button[type="submit"]')]
+                .filter(button => !button.closest('.d-none, [hidden]'))
+                .pop();
+            const submitGroup = submitButton && submitButton.closest('.d-flex');
+            if (submitGroup && registrationForm.contains(submitGroup)) {
+                actionLink.classList.add('ms-auto');
+                submitGroup.append(actionLink);
+            } else if (submitButton) {
+                actionBar.className = 'd-flex justify-content-between align-items-center gap-2 mt-3';
+                submitButton.before(actionBar);
+                actionBar.append(submitButton, actionLink);
+            } else {
+                actionBar.className = 'd-flex justify-content-end mt-3';
+                registrationForm.append(actionBar);
+                actionBar.append(actionLink);
+            }
+        }
+        if (showingRecords) actionBar.append(actionLink);
+
+        if (showingRecords) {
+            content.querySelectorAll('form[method="get"]').forEach(form => {
+                if (!form.querySelector('input[name="registros"]')) {
+                    const modeInput = document.createElement('input');
+                    modeInput.type = 'hidden';
+                    modeInput.name = 'registros';
+                    modeInput.value = '1';
+                    form.append(modeInput);
+                }
+            });
+        }
+    };
+    window.inicializarVistaRegistro();
+    document.addEventListener('piemonte:contenido-actualizado', window.inicializarVistaRegistro);
+    </script>
+    <script>
+    window.inicializarPaginacion = () => {
+        const pageSize = 4;
+        document.querySelectorAll('.main-content table').forEach(table => {
+            table.closest('.table-responsive')?.nextElementSibling?.matches('nav[aria-label="Paginación de tabla"]') &&
+                table.closest('.table-responsive').nextElementSibling.remove();
+            const body = table.tBodies[0];
+            if (!body) return;
+
+            const rows = [...body.rows].filter(row =>
+                !(row.cells.length === 1 && row.cells[0].hasAttribute('colspan'))
+            );
+            if (!rows.length) return;
+
+            let currentPage = 0;
+            const pagination = document.createElement('nav');
+            pagination.className = 'd-flex justify-content-between align-items-center gap-2 mt-2 mb-3';
+            pagination.setAttribute('aria-label', 'Paginación de tabla');
+
+            const summary = document.createElement('span');
+            summary.className = 'small text-muted';
+
+            const controls = document.createElement('div');
+            controls.className = 'btn-group btn-group-sm';
+
+            const previous = document.createElement('button');
+            previous.type = 'button';
+            previous.className = 'btn btn-outline-secondary';
+            previous.textContent = 'Anterior';
+            previous.setAttribute('aria-label', 'Página anterior');
+
+            const next = document.createElement('button');
+            next.type = 'button';
+            next.className = 'btn btn-outline-secondary';
+            next.textContent = 'Siguiente';
+            next.setAttribute('aria-label', 'Página siguiente');
+
+            controls.append(previous, next);
+            pagination.append(summary, controls);
+            const tableContainer = table.closest('.table-responsive') || table;
+            tableContainer.insertAdjacentElement('afterend', pagination);
+
+            const renderPage = () => {
+                const pageCount = Math.ceil(rows.length / pageSize);
+                const firstIndex = currentPage * pageSize;
+                rows.forEach((row, index) => {
+                    row.classList.toggle('table-pagination-hidden', index < firstIndex || index >= firstIndex + pageSize);
+                });
+                summary.textContent = `Mostrando ${firstIndex + 1} a ${Math.min(firstIndex + pageSize, rows.length)} de ${rows.length} registros`;
+                previous.disabled = currentPage === 0;
+                next.disabled = currentPage >= pageCount - 1;
+            };
+
+            previous.addEventListener('click', () => {
+                if (currentPage > 0) {
+                    currentPage -= 1;
+                    renderPage();
+                }
+            });
+            next.addEventListener('click', () => {
+                if (currentPage < Math.ceil(rows.length / pageSize) - 1) {
+                    currentPage += 1;
+                    renderPage();
+                }
+            });
+            renderPage();
+        });
+    };
+    window.inicializarPaginacion();
+    document.addEventListener('piemonte:contenido-actualizado', window.inicializarPaginacion);
+    </script>
+    <script>
+    window.inicializarFormulariosResponsivos = () => {
+        document.querySelectorAll('.main-content form').forEach(form => {
+            if (form.closest('table, .modal')) return;
+            const isField = element => Boolean(
+                !element.matches('.row') &&
+                element.querySelector(':scope > label') &&
+                element.querySelector(':scope > input:not([type="hidden"]), :scope > select, :scope > textarea')
+            );
+            form.querySelectorAll('.row').forEach(row => {
+                const columns = [...row.children].filter(child => child.matches('[class*="col-"]'));
+                const fields = columns.filter(isField);
+                const supportedColumns = columns.every(column =>
+                    column.matches('.col-md-6, .col-md-12, .col-12')
+                );
+                if (fields.length < 2 || fields.length !== columns.length || !supportedColumns) return;
+                row.classList.add('mobile-form-grid');
+                fields.forEach(field => field.classList.add('mobile-form-field'));
+            });
+
+            form.querySelectorAll('.mobile-form-field').forEach(field => {
+                if (field.querySelector('textarea, input[type="file"], input[type="checkbox"], input[type="radio"], select[multiple]')) {
+                    field.classList.add('mobile-form-field-wide');
+                }
+            });
+            if (!form.closest('.form-panel, .reportes-form')) return;
+            [...form.children].filter(child => child.matches('button[type="submit"]') || child.querySelector('button[type="submit"]'))
+                .forEach(action => action.classList.add('mobile-form-action'));
+        });
+    };
+    window.inicializarFormulariosResponsivos();
+    document.addEventListener('piemonte:contenido-actualizado', window.inicializarFormulariosResponsivos);
+    </script>
+{# Define la sección de plantilla «extra_js», que la vista base o hija completa. #}    {% block extra_js %}{% endblock %}
+{% if request.user.is_staff or request.user.is_superuser or perms.BD.change_configuracioncartera %}
+<script>
+(() => {
+    const formatoCOP = new Intl.NumberFormat('es-CO', { maximumFractionDigits: 2 });
+    const actualizarSaldos = async () => {
+        const response = await fetch('{% url "actualizar_saldos_cartera" %}', {
+            credentials: 'same-origin',
+            headers: {'X-Requested-With': 'XMLHttpRequest'},
+        });
+        if (!response.ok) throw new Error(`Error HTTP ${response.status}`);
+        const data = await response.json();
+        document.querySelectorAll('[data-house-balance]').forEach((element) => {
+            const saldo = data.saldos[element.dataset.houseBalance];
+            if (saldo === undefined) return;
+            const importe = Number(saldo);
+            element.textContent = '$' + formatoCOP.format(importe);
+            const filaPendiente = element.closest('[data-current-pending-row]');
+            if (!filaPendiente) return;
+            const estadoPendiente = filaPendiente.querySelector('[data-current-pending-status]');
+            if (estadoPendiente) {
+                window.aplicarEstadoVisual(estadoPendiente, 'pago', importe > 0 ? 'Pendiente' : 'Al día');
+            }
+            if (filaPendiente.dataset.onlyPending === 'true') filaPendiente.hidden = importe <= 0;
+        });
+    };
+    const solicitarActualizacionSaldos = () => {
+        actualizarSaldos().catch((error) => console.error('No se pudieron actualizar los saldos de cartera.', error));
+    };
+    const inicializarActualizacionSaldos = () => {
+        if (window.actualizacionSaldosIniciada) return;
+        window.actualizacionSaldosIniciada = true;
+        solicitarActualizacionSaldos();
+        window.setInterval(solicitarActualizacionSaldos, 60000);
+    };
+    inicializarActualizacionSaldos();
+    document.addEventListener('piemonte:contenido-actualizado', solicitarActualizacionSaldos);
+})();
+</script>
+{% endif %}
+    <script>
+    (() => {
+        const modalElement = document.getElementById('alertaDomiciliarioGlobal');
+        if (!modalElement) return;
+        const modal = new bootstrap.Modal(modalElement);
+        const mensaje = modalElement.querySelector('[data-alerta-domiciliario-mensaje]');
+        const alarma = document.getElementById('alarmaDomiciliario');
+        const vistos = new Set(JSON.parse(sessionStorage.getItem('domiciliosDemorados') || '[]'));
+        const cola = [];
+        const enCola = new Set();
+        let mostrando = false;
+        let ultimaOcultacion = 0;
+        let temporizador = null;
+        const presentarSiguiente = () => {
+            if (mostrando || cola.length === 0) return;
+            const espera = Math.max(0, ultimaOcultacion + 2000 - Date.now());
+            if (espera > 0) {
+                if (temporizador === null) {
+                    temporizador = window.setTimeout(() => {
+                        temporizador = null;
+                        presentarSiguiente();
+                    }, espera);
+                }
+                return;
+            }
+            const domicilio = cola.shift();
+            enCola.delete(domicilio.id);
+            vistos.add(domicilio.id);
+            sessionStorage.setItem('domiciliosDemorados', JSON.stringify([...vistos]));
+            mensaje.textContent = `Domiciliario ${domicilio.nombre} - Casa ${domicilio.casa}. Superó el tiempo de espera y no ha salido.`;
+            alarma.currentTime = 0;
+            alarma.play().catch((error) => console.error('No se pudo reproducir la alarma de domiciliario.', error));
+            mostrando = true;
+            modal.show();
+        };
+        modalElement.addEventListener('hidden.bs.modal', () => {
+            alarma.pause();
+            alarma.currentTime = 0;
+            mostrando = false;
+            ultimaOcultacion = Date.now();
+            presentarSiguiente();
+        });
+        const revisarDemorados = () => fetch('{% url "domicilios_demorados" %}')
+            .then((response) => {
+                if (!response.ok) throw new Error(`Error HTTP ${response.status}`);
+                return response.json();
+            })
+            .then((data) => {
+                data.domicilios.forEach((domicilio) => {
+                    if (vistos.has(domicilio.id) || enCola.has(domicilio.id)) return;
+                    enCola.add(domicilio.id);
+                    cola.push(domicilio);
+                });
+                presentarSiguiente();
+            })
+            .catch((error) => console.error('No se pudieron consultar los domiciliarios demorados.', error));
+        revisarDemorados();
+        window.setInterval(revisarDemorados, 10000);
+    })();
+    </script>
+    <script>
+    (() => {
+        const mensajeValidacion = (campo) => {
+            const validez = campo.validity;
+            if (validez.valueMissing) {
+                if (campo instanceof HTMLSelectElement) return 'Selecciona una opción.';
+                if (campo.type === 'checkbox' || campo.type === 'radio') return 'Selecciona esta opción para continuar.';
+                if (campo.type === 'file') return 'Selecciona un archivo.';
+                return 'Este campo es obligatorio.';
+            }
+            if (validez.typeMismatch) {
+                if (campo.type === 'email') return 'Ingresa un correo electrónico válido.';
+                if (campo.type === 'url') return 'Ingresa una dirección web válida.';
+                return 'El formato ingresado no es válido.';
+            }
+            if (validez.patternMismatch) {
+                if (campo.name === 'correo' || campo.type === 'email') {
+                    return 'Ingresa una dirección de correo electrónico válida.';
+                }
+                return 'El formato ingresado no es válido.';
+            }
+            if (validez.rangeUnderflow) return 'El valor debe ser mayor o igual al mínimo permitido.';
+            if (validez.rangeOverflow) return 'El valor supera el máximo permitido.';
+            if (validez.stepMismatch) return 'Ingresa un valor válido para este campo.';
+            if (validez.tooShort) return `Ingresa al menos ${campo.minLength} caracteres.`;
+            if (validez.tooLong) return `Ingresa como máximo ${campo.maxLength} caracteres.`;
+            if (validez.badInput) {
+                if (campo.type === 'number') return 'Ingresa un número válido.';
+                if (campo.type === 'date') return 'Ingresa una fecha válida.';
+                if (campo.type === 'time') return 'Ingresa una hora válida.';
+                return 'Revisa el valor ingresado.';
+            }
+            return 'Revisa el valor ingresado en este campo.';
+        };
+
+        document.addEventListener('invalid', (evento) => {
+            const campo = evento.target;
+            if (campo instanceof HTMLInputElement ||
+                campo instanceof HTMLSelectElement ||
+                campo instanceof HTMLTextAreaElement) {
+                campo.setCustomValidity(mensajeValidacion(campo));
+            }
+        }, true);
+
+        const limpiarMensaje = (evento) => {
+            const campo = evento.target;
+            if (campo instanceof HTMLInputElement ||
+                campo instanceof HTMLSelectElement ||
+                campo instanceof HTMLTextAreaElement) {
+                campo.setCustomValidity('');
+            }
+        };
+        document.addEventListener('input', limpiarMensaje);
+        document.addEventListener('change', limpiarMensaje);
+    })();
+    </script>
+    <script>
+    (() => {
+        const inicializarEnviosAjax = () => {
+            document.querySelectorAll(
+                '.main-content form:not([data-native-submit]):not([data-usuarios-filtros]):not([data-usuario-toggle])'
+            ).forEach((form) => { form.dataset.ajaxForm = ''; });
+        };
+        inicializarEnviosAjax();
+        document.addEventListener('piemonte:contenido-actualizado', inicializarEnviosAjax);
+
+        const mostrarError = (mensaje) => {
+            document.querySelector('[data-async-form-error]')?.remove();
+            const alerta = document.createElement('div');
+            alerta.className = 'alert alert-danger';
+            alerta.dataset.asyncFormError = '';
+            alerta.setAttribute('role', 'alert');
+            alerta.textContent = mensaje;
+            document.querySelector('.main-content')?.prepend(alerta);
+        };
+
+        document.addEventListener('submit', async (evento) => {
+            const form = evento.target;
+            if (!(form instanceof HTMLFormElement) ||
+                evento.defaultPrevented ||
+                !form.matches('[data-ajax-form]') ||
+                (form.target && form.target !== '_self') ||
+                (evento.submitter?.formTarget && evento.submitter.formTarget !== '_self')) return;
+
+            evento.preventDefault();
+            const boton = evento.submitter;
+            if (boton) boton.disabled = true;
+            const metodo = form.method.toUpperCase();
+            const url = new URL(form.getAttribute('action') || window.location.href, window.location.origin);
+            const opciones = {credentials: 'same-origin', headers: {'X-Requested-With': 'XMLHttpRequest'}};
+            if (metodo === 'GET') {
+                url.search = new URLSearchParams(new FormData(form)).toString();
+            } else {
+                opciones.method = metodo;
+                opciones.body = new FormData(form);
+            }
+
+            try {
+                const respuesta = await fetch(url, opciones);
+                const html = await respuesta.text();
+                const documento = new DOMParser().parseFromString(html, 'text/html');
+                const contenidoNuevo = documento.querySelector('.main-content');
+                if (!contenidoNuevo) {
+                    throw new Error(`El servidor no devolvió el contenido esperado (HTTP ${respuesta.status}).`);
+                }
+                if (metodo !== 'GET' && !respuesta.redirected) {
+                    const confirmacion = contenidoNuevo.querySelector('[data-casa-confirmacion]');
+                    const errores = [...contenidoNuevo.querySelectorAll('.alert-danger, .text-danger')]
+                        .map((elemento) => elemento.textContent.trim())
+                        .filter(Boolean);
+                    const contenidoActual = document.querySelector('.main-content');
+                    contenidoActual.replaceWith(contenidoNuevo);
+                    document.title = documento.title;
+                    document.dispatchEvent(new Event('piemonte:contenido-actualizado'));
+                    if (confirmacion) {
+                        document.querySelector('[data-casa-confirmacion]')?.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'center',
+                        });
+                        return;
+                    }
+                    mostrarError(errores[0] || 'No se guardó el registro. Revisa los datos del formulario.');
+                    return;
+                }
+                const contenidoActual = document.querySelector('.main-content');
+                if (!respuesta.ok) {
+                    contenidoActual.replaceWith(contenidoNuevo);
+                    document.title = documento.title;
+                    window.history.replaceState({}, '', respuesta.url);
+                    document.dispatchEvent(new Event('piemonte:contenido-actualizado'));
+                    throw new Error(`No se pudo completar la acción (HTTP ${respuesta.status}).`);
+                }
+                contenidoActual.replaceWith(contenidoNuevo);
+                document.title = documento.title;
+                window.history.pushState({}, '', respuesta.url);
+                document.dispatchEvent(new Event('piemonte:contenido-actualizado'));
+                window.scrollTo({top: 0, behavior: 'smooth'});
+            } catch (error) {
+                console.error('No se pudo completar el formulario sin recargar la página.', error);
+                mostrarError(error.message || 'No se pudo completar la acción. Inténtalo de nuevo.');
+                if (boton?.isConnected) boton.disabled = false;
+            }
+        });
+
+        window.addEventListener('popstate', async () => {
+            if (document.getElementById('usuarios-listado')) return;
+            try {
+                const respuesta = await fetch(window.location.href, {
+                    credentials: 'same-origin',
+                    headers: {'X-Requested-With': 'XMLHttpRequest'},
+                });
+                if (!respuesta.ok) throw new Error(`Error HTTP ${respuesta.status}`);
+                const documento = new DOMParser().parseFromString(await respuesta.text(), 'text/html');
+                const contenidoNuevo = documento.querySelector('.main-content');
+                const contenidoActual = document.querySelector('.main-content');
+                if (!contenidoNuevo || !contenidoActual) {
+                    throw new Error('No se encontró el contenido de la página para restaurar.');
+                }
+                contenidoActual.replaceWith(contenidoNuevo);
+                document.title = documento.title;
+                document.dispatchEvent(new Event('piemonte:contenido-actualizado'));
+            } catch (error) {
+                console.error('No se pudo restaurar la vista anterior.', error);
+                mostrarError('No se pudo restaurar la vista anterior. Recarga la página para continuar.');
+            }
+        });
+    })();
+    </script>
+    <script src="{% static 'core/js/floating-help.js' %}?v=4"></script>
+    <script src="{% static 'core/js/notification-modal.js' %}"></script>
+</body>
+</html>

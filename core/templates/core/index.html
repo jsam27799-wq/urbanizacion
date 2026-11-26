@@ -1,0 +1,471 @@
+{# Módulo: Presenta la interfaz y los datos dinámicos de la vista «index». #}{# Hereda la estructura común definida en «'core/base.html'». #}{% extends 'core/base.html' %}
+{% load static %}
+{# Define la sección de plantilla «content», que la vista base o hija completa. #}{% block content %}
+<!--
+
+Tooplate 2149 Strategic Consulting
+
+https://www.tooplate.com/view/2149-strategic-consulting
+
+Free HTML CSS Template
+
+-->
+
+    <div class="menu-access">
+        <button class="menu-btn" type="button" onclick="toggleMenu()" aria-label="{% if request.user.is_authenticated %}Abrir menú de usuario{% else %}Abrir opciones de acceso{% endif %}" aria-controls="sideMenu" aria-expanded="false">
+            <span aria-hidden="true">👤</span>
+        </button>
+        <div id="sideMenu" class="side-menu{% if request.user.is_authenticated %} side-menu--user{% endif %}">
+            {% if request.user.is_authenticated %}
+            <div class="account-welcome">
+                <span class="account-welcome__icon" aria-hidden="true">👋</span>
+                <span class="account-welcome__copy">
+                    <small>Sesión iniciada</small>
+                    <strong>¡Bienvenido, {{ request.user.get_full_name|default:request.user.username }}!</strong>
+                </span>
+            </div>
+            <div class="account-menu-links">
+                <button type="button" class="login-menu-link" data-open-profile>
+                    <span class="login-menu-link__icon" aria-hidden="true">👤</span>
+                    <span class="login-menu-link__copy">
+                        <strong>Mi perfil</strong>
+                        <small>Ver y actualizar tus datos</small>
+                    </span>
+                    <span class="login-menu-link__arrow" aria-hidden="true">→</span>
+                </button>
+                <a href="{% url 'dashboard' %}" class="login-menu-link">
+                    <span class="login-menu-link__icon" aria-hidden="true">⌂</span>
+                    <span class="login-menu-link__copy">
+                        <strong>Volver al dashboard</strong>
+                        <small>Ir al panel principal</small>
+                    </span>
+                    <span class="login-menu-link__arrow" aria-hidden="true">→</span>
+                </a>
+                <a href="{% url 'logout' %}" class="login-menu-link login-menu-link--logout">
+                    <span class="login-menu-link__icon" aria-hidden="true">↪</span>
+                    <span class="login-menu-link__copy">
+                        <strong>Cerrar sesión</strong>
+                        <small>Salir de tu cuenta</small>
+                    </span>
+                    <span class="login-menu-link__arrow" aria-hidden="true">→</span>
+                </a>
+            </div>
+            {% else %}
+            <a href="{% url 'login' %}" class="login-menu-link">
+                <span class="login-menu-link__icon" aria-hidden="true">👤</span>
+                <span class="login-menu-link__copy">
+                    <strong>Iniciar sesión</strong>
+                    <small>Accede a tu cuenta</small>
+                </span>
+                <span class="login-menu-link__arrow" aria-hidden="true">→</span>
+            </a>
+            {% endif %}
+        </div>
+        {% if request.user.is_authenticated %}
+        <dialog class="profile-dialog" data-profile-dialog aria-labelledby="profileDialogTitle">
+            <div class="profile-dialog__header">
+                <div>
+                    <span>Tu cuenta Piemonte</span>
+                    <h2 id="profileDialogTitle">Mi perfil</h2>
+                </div>
+                <button type="button" aria-label="Cerrar perfil" data-profile-close>&times;</button>
+            </div>
+            <div class="profile-dialog__body">
+                <div class="profile-dialog__identity">
+                    <span class="profile-dialog__avatar" aria-hidden="true">👤</span>
+                    <div>
+                        <h3>{{ request.user.get_full_name|default:request.user.username }}</h3>
+                        <p>@{{ request.user.username }}</p>
+                    </div>
+                </div>
+                <dl class="profile-dialog__details">
+                    <div><dt>Nombre</dt><dd>{{ request.user.first_name|default:"No registrado" }}</dd></div>
+                    <div><dt>Apellido</dt><dd>{{ request.user.last_name|default:"No registrado" }}</dd></div>
+                    <div><dt>Correo electrónico</dt><dd>{{ request.user.email|default:"No registrado" }}</dd></div>
+                    <div><dt>Teléfono</dt><dd>{{ telefono_formateado|default:"No registrado" }}</dd></div>
+                </dl>
+                <a href="{% url 'perfil' %}" class="profile-dialog__edit">Editar perfil completo <span aria-hidden="true">→</span></a>
+            </div>
+        </dialog>
+        {% endif %}
+    </div>
+
+            <!-- Hero Section -->
+{# Esta estructura presenta el bloque de sección visual de la pantalla. #}    <section id="home" class="hero">
+        <div class="geometric-shapes">
+            <div class="geo-shape"></div>
+            <div class="geo-shape"></div>
+            <div class="geo-shape"></div>
+            <div class="geo-shape"></div>
+            <div class="geo-shape"></div>
+        </div>
+        <div class="hero-content">
+            <h1 id="hero-headline">Urbanización Piemonte<br></h1>
+            <p id="hero-paragraph">Seguridad, tranquilidad y sana convivencia para vivir mejor</p>
+            <a href="#services" class="cta-button">Descubre nuestra Urbanización</a>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+{# Esta estructura presenta el bloque de sección visual de la pantalla. #}    <section id="services" class="services">
+        <div class="section services-container">
+            <h1 class="section-title fade-in">La Esencia de Piemonte</h1>
+            <div class="services-layout">
+                <div class="services-content">
+                    <div class="service-details active" data-service="strategy">
+                        <h3>Control de acceso</h3>
+                        <div class="service-subtitle">Seguridad y tranquilidad para cada ingreso</div>
+                        <p>En Urbanización Piemonte, cada acceso está pensado para brindarte tranquilidad. Nuestro sistema permite controlar de forma segura la entrada de residentes, visitantes y vehículos, siempre con registro claro y orden.</p>
+                        <p>La portería y la administración pueden supervisar cada movimiento en tiempo real, facilitando la convivencia y fortaleciendo la protección de la comunidad.</p>
+                        <ul class="service-features">
+                            <li><span class="feature-check">✓</span> Registro de ingresos y salidas</li>
+                            <li><span class="feature-check">✓</span> Validación de visitantes autorizados</li>
+                            <li><span class="feature-check">✓</span> Control eficiente en la portería</li>
+                            <li><span class="feature-check">✓</span> Historial confiable para consultas</li>
+                        </ul>
+                    </div>
+                    <div class="service-details" data-service="digital">
+                        <h3>Registro de visitantes</h3>
+                        <div class="service-subtitle">Acceso ágil y organizado para cada visita</div>
+                        <p>Queremos que cada llegada sea sencilla para tu familia y segura para la comunidad. por eso, el registro de visitantes se hace de manera rápida, clara y controlada.</p>
+                        <p>Los residentes pueden autorizar accesos con anticipación y la administración puede revisar el historial cuando lo necesite, manteniendo el orden y la confianza.</p>
+                        <ul class="service-features">
+                            <li><span class="feature-check">✓</span> Autorización previa de visitas</li>
+                            <li><span class="feature-check">✓</span> Registro digital de ingresos</li>
+                            <li><span class="feature-check">✓</span> Control rápido en portería</li>
+                            <li><span class="feature-check">✓</span> Historial y seguimiento completo</li>
+                        </ul>
+                    </div>
+                    <div class="service-details" data-service="performance">
+                        <h3>Gestión de pagos</h3>
+                        <div class="service-subtitle">Procesos claros y fáciles de seguir</div>
+                        <p>La administración de la residencia necesita ser ordenada y transparente. Por eso, nuestra plataforma facilita el seguimiento de pagos, cuotas y obligaciones de manera clara y accesible.</p>
+                        <p>Residentes y administración pueden consultar información financiera de forma rápida, reduciendo dudas y mejorando la organización del conjunto.</p>
+                        <ul class="service-features">
+                            <li><span class="feature-check">✓</span> Consulta de estados de cuenta</li>
+                            <li><span class="feature-check">✓</span> Registro de pagos realizados</li>
+                            <li><span class="feature-check">✓</span> Historial financiero ordenado</li>
+                            <li><span class="feature-check">✓</span> Seguimiento de obligaciones pendientes</li>
+                        </ul>
+                    </div>
+                    <div class="service-details" data-service="market">
+                        <h3>Gestión de residentes</h3>
+                        <div class="service-subtitle">Información centralizada y siempre actualizada</div>
+                        <p>En Urbanización Piemonte valoramos la organización. Por eso, mantenemos la información de residentes, propietarios y arrendatarios de manera ordenada y fácil de consultar.</p>
+                        <p>Esto ayuda a la administración a atender cada solicitud con mayor rapidez y a cada familia a sentirse acompañada en un entorno bien administrado.</p>
+                        <ul class="service-features">
+                            <li><span class="feature-check">✓</span> Registro claro de residentes</li>
+                            <li><span class="feature-check">✓</span> Datos actualizados y seguros</li>
+                            <li><span class="feature-check">✓</span> Gestión de propietarios e inquilinos</li>
+                            <li><span class="feature-check">✓</span> Consulta ágil de información</li>
+                        </ul>
+                    </div>
+                    <div class="service-details" data-service="innovation">
+                        <h3>Reportes</h3>
+                        <div class="service-subtitle">Decisiones más inteligentes, basadas en información real</div>
+                        <p>La administración necesita ver el comportamiento de la comunidad con claridad. Nuestros reportes ayudan a identificar tendencias, controlar procesos y tomar decisiones con mayor confianza.</p>
+                        <p>Todo queda organizado y accesible para respaldar la gestión diaria de la residencia y fortalecer cada proceso.</p>
+                        <ul class="service-features">
+                            <li><span class="feature-check">✓</span> Reportes de accesos</li>
+                            <li><span class="feature-check">✓</span> Indicadores de pagos y gestión</li>
+                            <li><span class="feature-check">✓</span> Información clara para decisiones</li>
+                            <li><span class="feature-check">✓</span> Visualización ordenada y útil</li>
+                        </ul>
+                    </div>
+                    <div class="service-details" data-service="transformation">
+                        <h3>Comunicaciones</h3>
+                        <div class="service-subtitle">Mantener a la comunidad informada y conectada</div>
+                        <p>La buena convivencia también se construye con comunicación clara. En Urbanización Piemonte, los avisos, noticias y recordatorios se pueden compartir de manera rápida y efectiva.</p>
+                        <p>Esto ayuda a que cada residente esté informado de lo importante, sin confusión ni barreras.</p>
+                        <ul class="service-features">
+                            <li><span class="feature-check">✓</span> Envío de comunicados</li>
+                            <li><span class="feature-check">✓</span> Avisos importantes y oportunos</li>
+                            <li><span class="feature-check">✓</span> Recordatorios automáticos</li>
+                            <li><span class="feature-check">✓</span> Difusión de eventos y novedades</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="services-tabs">
+                    <div class="service-tab active" data-target="strategy">
+                        <div class="tab-icon">🎯</div>
+                        <div class="tab-content">
+                            <h4>Control de acceso</h4>
+                            <p>Seguridad para cada ingreso</p>
+                        </div>
+                    </div>
+                    <div class="service-tab" data-target="digital">
+                        <div class="tab-icon">⚡</div>
+                        <div class="tab-content">
+                            <h4>Visitantes</h4>
+                            <p>Autorización fácil y segura</p>
+                        </div>
+                    </div>
+                    <div class="service-tab" data-target="performance">
+                        <div class="tab-icon">📊</div>
+                        <div class="tab-content">
+                            <h4>Pagos</h4>
+                            <p>Seguimiento claro de cuotas</p>
+                        </div>
+                    </div>
+                    <div class="service-tab" data-target="market">
+                        <div class="tab-icon">🏡</div>
+                        <div class="tab-content">
+                            <h4>Residentes</h4>
+                            <p>Información ordenada y disponible</p>
+                        </div>
+                    </div>
+                    <div class="service-tab" data-target="innovation">
+                        <div class="tab-icon">📈</div>
+                        <div class="tab-content">
+                            <h4>Reportes</h4>
+                            <p>Datos útiles para decisiones</p>
+                        </div>
+                    </div>
+                    <div class="service-tab" data-target="transformation">
+                        <div class="tab-icon">💬</div>
+                        <div class="tab-content">
+                            <h4>Comunicaciones</h4>
+                            <p>Información y novedades para todos</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+{# Esta estructura presenta el bloque de sección visual de la pantalla. #}    <section id="about" class="about-section">
+        <div class="section about fade-in">
+            <div class="about-content">
+                <br>
+                <h2>Gestión inteligente para Urbanización Piemonte</h2>
+                <p>En Urbanización Piemonte buscamos que cada familia disfrute de un entorno seguro, ordenado y acogedor. Nuestra plataforma ayuda a organizar la vida diaria del conjunto residencial, desde el ingreso de visitantes hasta la gestión administrativa.</p>
+
+                <div class="about-features">
+                    <button class="feature-item active" type="button" data-about-image="{% static 'core/images/zona_Social.jpg' %}" data-about-alt="Salón social de Residencia Piemonte" data-about-description="Un espacio cómodo y versátil para celebrar reuniones, encuentros familiares, cumpleaños y eventos de la comunidad." aria-pressed="true">
+                        <div class="feature-icon">🎉</div>
+                        <div class="feature-text">Salón social</div>
+                    </button>
+                    <button class="feature-item" type="button" data-about-image="{% static 'core/images/zona_paq.jpg' %}" data-about-alt="Parqueadero de Residencia Piemonte" data-about-description="Un área organizada para facilitar el estacionamiento de residentes y visitantes, con mayor orden y tranquilidad." aria-pressed="false">
+                        <div class="feature-icon">🚗</div>
+                        <div class="feature-text">Parqueadero</div>
+                    </button>
+                    <button class="feature-item" type="button" data-about-image="{% static 'core/images/zona_juego.jpg' %}" data-about-alt="Zona de juegos de Residencia Piemonte" data-about-description="Un lugar pensado para que los niños disfruten, compartan y jueguen en un ambiente agradable para toda la familia." aria-pressed="false">
+                        <div class="feature-icon">🛝</div>
+                        <div class="feature-text">Zona de juegos</div>
+                    </button>
+                    <button class="feature-item" type="button" data-about-image="{% static 'core/images/zona_seg.jpg' %}" data-about-alt="Zona de seguridad de Residencia Piemonte" data-about-description="Un entorno protegido con apoyo de portería y procesos de control para cuidar a residentes, familias y visitantes." aria-pressed="false">
+                        <div class="feature-icon">🛡️</div>
+                        <div class="feature-text">Zona de seguridad</div>
+                    </button>
+                </div>
+                <p id="about-feature-description" class="about-feature-description">Un espacio cómodo y versátil para celebrar reuniones, encuentros familiares, cumpleaños y eventos de la comunidad.</p>
+            </div>
+            <div class="about-visual">
+                <div class="about-image">
+                    <div class="visual-shapes">
+                        <div class="visual-shape"></div>
+                        <div class="visual-shape"></div>
+                        <div class="visual-shape"></div>
+                    </div>
+                    <img id="about-feature-image" src="{% static 'core/images/about-image-01.jpg' %}" alt="Salón social de Residencia Piemonte">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Novedades Section -->
+{# Esta estructura presenta el bloque de sección visual de la pantalla. #}    <section id="team" class="team">
+        <div class="section">
+            <h2 class="section-title fade-in">Novedades de Piemonte</h2>
+            <div class="news-gallery">
+{# Genera una sección repetida para cada elemento de «novedad in novedades». #}                {% for novedad in novedades %}
+{# Muestra este contenido únicamente cuando se cumple la condición «forloop.counter > 3». #}{# Esta estructura presenta el bloque de contenido independiente de la pantalla. #}                    <article class="news-card fade-in{% if forloop.counter > 3 %} news-card-hidden{% endif %}">
+                        <div class="news-image">
+{# Muestra este contenido únicamente cuando se cumple la condición «novedad.evidencia». #}                            {% if novedad.evidencia %}
+                                <img src="{{ novedad.evidencia.url }}" alt="Imagen de la novedad">
+                            {% else %}
+                                <img src="{% static 'core/images/porteria.png' %}" alt="Novedad de Residencia Piemonte">
+                            {% endif %}
+                            <span class="news-tag">{{ novedad.tipo }}</span>
+                        </div>
+                        <div class="news-content">
+{# Muestra este contenido únicamente cuando se cumple la condición «novedad.fecha_suceso». #}                            {% if novedad.fecha_suceso %}<span class="news-date">{{ novedad.fecha_suceso|date:'d/m/Y' }}</span>{% else %}<span class="news-date">Residencia Piemonte</span>{% endif %}
+                            <h3>{{ novedad.titulo }}</h3>
+                            <p>{{ novedad.nota }}</p>
+                        </div>
+                    </article>
+                {% empty %}
+                    <div class="news-empty">
+                        <h3>Próximamente nuevas novedades</h3>
+                        <p>La administración publicará aquí la información importante de la comunidad.</p>
+                    </div>
+                {% endfor %}
+            </div>
+{# Muestra este contenido únicamente cuando se cumple la condición «novedades|length > 3». #}            {% if novedades|length > 3 %}
+                <div class="news-actions">
+                    <button class="news-more-button" id="load-more-news" type="button">Ver más novedades <span aria-hidden="true">→</span></button>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+{# Esta estructura presenta el bloque de sección visual de la pantalla. #}    <section id="testimonials" class="testimonials">
+        <div class="section">
+            <h2 class="section-title fade-in">La confianza de nuestros residentes</h2>
+            <div class="testimonials-container">
+{# Genera una sección repetida para cada elemento de «resena in resenas». #}                {% for resena in resenas %}
+{# Muestra este contenido únicamente cuando se cumple la condición «forloop.counter > 3». #}{# Esta estructura presenta el bloque de contenido independiente de la pantalla. #}                    <article class="testimonial fade-in{% if forloop.counter > 3 %} testimonial-hidden{% endif %}">
+                        <div class="testimonial-content">
+                            <div class="review-rating" aria-label="{{ resena.calificacion }} de 5 estrellas">
+                                <span class="review-stars">★ {{ resena.calificacion }}/5</span>
+{# Muestra este contenido únicamente cuando se cumple la condición «resena.calificacion == 1». #}                                <span class="review-rating-label">{% if resena.calificacion == 1 %}Pésimo{% elif resena.calificacion == 2 %}Regular{% elif resena.calificacion == 3 %}Moderado{% elif resena.calificacion == 4 %}Bueno{% else %}Excelente{% endif %}</span>
+                            </div>
+                            <p class="testimonial-text">“{{ resena.comentario }}”</p>
+                            <div class="testimonial-author">
+                                <div class="author-avatar">{{ resena.nombre|slice:':2'|upper }}</div>
+                                <div class="author-info">
+                                    <h4>{{ resena.nombre }}</h4>
+{# Muestra este contenido únicamente cuando se cumple la condición «resena.rol_usuario». #}                                    <span>{% if resena.rol_usuario %}{{ resena.rol_usuario }} de Piemonte{% else %}Miembro de Piemonte{% endif %}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                {% empty %}
+                    <div class="review-empty">
+                        <h3>Aún no hay reseñas publicadas</h3>
+                        <p>Comparte tu experiencia y podrá aparecer aquí después de ser aprobada.</p>
+                    </div>
+                {% endfor %}
+            </div>
+{# Muestra este contenido únicamente cuando se cumple la condición «resenas|length > 3». #}            {% if resenas|length > 3 %}
+                <div class="review-actions">
+                    <button class="news-more-button" id="load-more-reviews" type="button">Ver más reseñas <span aria-hidden="true">→</span></button>
+                </div>
+            {% endif %}
+{# Muestra este contenido únicamente cuando se cumple la condición «puede_enviar_resena». #}            {% if puede_enviar_resena %}
+            <div class="review-form-wrap fade-in">
+                <h3>Comparte tu experiencia</h3>
+                <p>Tu reseña será revisada por la administración antes de publicarse.</p>
+{# Esta estructura presenta el bloque de formulario de captura de la pantalla. #}                <form class="review-form" method="post" action="{% url 'enviar_resena' %}">
+                    {% csrf_token %}
+                    <div class="review-form-row">
+                        {{ resena_form.nombre }}
+                        <div class="rating-picker">
+                            {{ resena_form.calificacion.as_hidden }}
+                            <span class="rating-picker-label">Tu valoración</span>
+                            <div class="rating-picker-stars" role="radiogroup" aria-label="Selecciona una valoración de 1 a 5 estrellas">
+{# Genera una sección repetida para cada elemento de «valor in "12345"». #}                                {% for valor in "12345" %}<button type="button" class="rating-star" data-rating="{{ valor }}" role="radio" aria-label="{{ valor }} estrella{{ valor|pluralize }}">☆</button>{% endfor %}
+                            </div>
+                            <span class="rating-picker-status" aria-live="polite">Selecciona una opción</span>
+                        </div>
+                    </div>
+                    {{ resena_form.comentario }}
+                    <button type="submit" class="submit-btn">Enviar reseña</button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+<script>
+function toggleMenu(){
+    const menu = document.getElementById("sideMenu");
+    const menuButton = document.querySelector(".menu-btn");
+    const isOpen = menu.classList.toggle("active");
+    menuButton.setAttribute("aria-expanded", String(isOpen));
+}
+
+(() => {
+    const menu = document.getElementById('sideMenu');
+    const menuButton = document.querySelector('.menu-btn');
+    const profileButton = document.querySelector('[data-open-profile]');
+    const profileDialog = document.querySelector('[data-profile-dialog]');
+    const closeButton = document.querySelector('[data-profile-close]');
+    if (!menu || !menuButton || !profileButton || !profileDialog || !closeButton) return;
+
+    profileButton.addEventListener('click', () => {
+        menu.classList.remove('active');
+        menuButton.setAttribute('aria-expanded', 'false');
+        profileDialog.showModal();
+    });
+
+    closeButton.addEventListener('click', () => profileDialog.close());
+    profileDialog.addEventListener('click', (event) => {
+        if (event.target === profileDialog) profileDialog.close();
+    });
+})();
+
+const reviewForm = document.querySelector('.review-form');
+if (reviewForm) {
+    const feedback = document.createElement('div');
+    feedback.className = 'review-form-feedback';
+    feedback.setAttribute('aria-live', 'polite');
+    reviewForm.before(feedback);
+
+    reviewForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const submitButton = reviewForm.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
+        feedback.textContent = '';
+        feedback.classList.remove('is-success');
+
+        try {
+            const response = await fetch(reviewForm.action, {
+                method: 'POST',
+                body: new FormData(reviewForm),
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                },
+                credentials: 'same-origin',
+            });
+            const result = await response.json();
+            feedback.textContent = result.message;
+            feedback.classList.toggle('is-success', response.ok);
+
+            if (response.ok) {
+                reviewForm.remove();
+            }
+        } catch (error) {
+            console.error('No se pudo enviar la reseña sin recargar la página.', error);
+            feedback.textContent = 'No fue posible enviar la reseña. Inténtalo nuevamente.';
+        } finally {
+            if (submitButton.isConnected) submitButton.disabled = false;
+        }
+    });
+}
+
+</script>
+
+<script>
+(() => {
+    const picker = document.querySelector('.rating-picker');
+    if (!picker) return;
+    const input = picker.querySelector('input[name="calificacion"]');
+    const stars = Array.from(picker.querySelectorAll('.rating-star'));
+    const status = picker.querySelector('.rating-picker-status');
+    const labels = {1: 'Pésimo', 2: 'Regular', 3: 'Moderado', 4: 'Bueno', 5: 'Excelente'};
+    const actualizar = (valor) => {
+        stars.forEach((star) => {
+            const activo = Number(star.dataset.rating) <= Number(valor);
+            star.classList.toggle('is-selected', activo);
+            star.textContent = activo ? '★' : '☆';
+            star.setAttribute('aria-checked', String(Number(star.dataset.rating) === Number(valor)));
+        });
+        if (status) status.textContent = valor ? labels[valor] : 'Selecciona una opción';
+    };
+    stars.forEach((star) => {
+        star.addEventListener('mouseenter', () => actualizar(star.dataset.rating));
+        star.addEventListener('click', () => {
+            input.value = star.dataset.rating;
+            actualizar(input.value);
+        });
+    });
+    picker.addEventListener('mouseleave', () => actualizar(input.value));
+    actualizar(input.value);
+})();
+</script>
+
+{% endblock %}

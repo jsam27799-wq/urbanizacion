@@ -1,0 +1,207 @@
+.site-notification {
+    width: min(92vw, 540px);
+    max-width: none;
+    max-height: min(82vh, 680px);
+    padding: 0;
+    overflow: visible;
+    color: #233b37;
+    background: transparent;
+    border: 0;
+}
+
+.site-notification::backdrop {
+    background: rgba(15, 34, 31, .62);
+    backdrop-filter: blur(4px);
+}
+
+.site-notification__card {
+    overflow: hidden;
+    background: #fff;
+    border: 1px solid rgba(220, 233, 229, .9);
+    border-radius: 22px;
+    box-shadow: 0 28px 80px rgba(8, 32, 27, .3);
+}
+
+.site-notification__header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.4rem 1.5rem 1.2rem;
+    background: linear-gradient(135deg, #f3fbf8, #fff);
+    border-bottom: 1px solid #e8f0ed;
+}
+
+.site-notification__icon {
+    display: inline-flex;
+    width: 52px;
+    height: 52px;
+    flex: 0 0 52px;
+    align-items: center;
+    justify-content: center;
+    color: #17614f;
+    background: #dff3ec;
+    border-radius: 17px;
+    font-size: 1.55rem;
+    font-weight: 800;
+}
+
+.site-notification__icon.is-error {
+    color: #a52c38;
+    background: #fde9eb;
+}
+
+.site-notification__icon.is-warning {
+    color: #855b0b;
+    background: #fff3d4;
+}
+
+.site-notification__eyebrow {
+    display: block;
+    margin-bottom: .2rem;
+    color: #69817b;
+    font-size: .68rem;
+    font-weight: 800;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+}
+
+.site-notification__title {
+    margin: 0;
+    color: #173f3a;
+    font-size: 1.22rem;
+    font-weight: 800;
+}
+
+.site-notification__close {
+    display: inline-flex;
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+    color: #60736e;
+    background: #edf4f1;
+    border: 0;
+    border-radius: 50%;
+    font-size: 1.35rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.site-notification__close:hover {
+    color: #173f3a;
+    background: #dcebe5;
+}
+
+.site-notification__body {
+    display: grid;
+    gap: .75rem;
+    max-height: min(52vh, 420px);
+    padding: 1.3rem 1.5rem;
+    overflow-y: auto;
+}
+
+.site-notification__message {
+    display: flex;
+    align-items: flex-start;
+    gap: .8rem;
+    padding: .9rem 1rem;
+    color: #29423e;
+    background: #f2f8f6;
+    border: 1px solid #e2eee9;
+    border-radius: 13px;
+}
+
+.site-notification__message.is-success {
+    background: #f0faf5;
+    border-color: #d7eee2;
+}
+
+.site-notification__message.is-error {
+    color: #762630;
+    background: #fff5f5;
+    border-color: #f5dcdf;
+}
+
+.site-notification__message.is-warning {
+    color: #704e0b;
+    background: #fffbef;
+    border-color: #f4e8c8;
+}
+
+.site-notification__message-icon {
+    display: inline-flex;
+    width: 25px;
+    height: 25px;
+    flex: 0 0 25px;
+    align-items: center;
+    justify-content: center;
+    color: #17614f;
+    background: #dff3ec;
+    border-radius: 50%;
+    font-size: .85rem;
+    font-weight: 800;
+}
+
+.site-notification__message.is-error .site-notification__message-icon {
+    color: #a52c38;
+    background: #fde9eb;
+}
+
+.site-notification__message.is-warning .site-notification__message-icon {
+    color: #855b0b;
+    background: #fff0c5;
+}
+
+.site-notification__message p {
+    margin: .1rem 0 0;
+    font-size: .96rem;
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+}
+
+.site-notification__footer {
+    display: flex;
+    justify-content: flex-end;
+    padding: 0 1.5rem 1.4rem;
+}
+
+.site-notification__button {
+    min-width: 126px;
+    padding: .72rem 1.2rem;
+    color: #fff;
+    background: #17614f;
+    border: 0;
+    border-radius: 11px;
+    font: inherit;
+    font-size: .9rem;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 7px 16px rgba(23, 97, 79, .2);
+}
+
+.site-notification__button:hover {
+    background: #104c3e;
+}
+
+.site-notification__button:focus-visible,
+.site-notification__close:focus-visible {
+    outline: 3px solid #72d7b5;
+    outline-offset: 3px;
+}
+
+@media (max-width: 480px) {
+    .site-notification__header {
+        gap: .75rem;
+        padding: 1.1rem 1rem;
+    }
+
+    .site-notification__body {
+        padding: 1rem;
+    }
+
+    .site-notification__footer {
+        padding: 0 1rem 1rem;
+    }
+}

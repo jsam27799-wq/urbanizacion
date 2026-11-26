@@ -1,0 +1,371 @@
+{# Módulo: Presenta la interfaz y los datos dinámicos de la vista «copias_seguridad». #}{# Hereda la estructura común definida en «"BD/basex.html"». #}{% extends "BD/basex.html" %}
+
+{# Define la sección de plantilla «title», que la vista base o hija completa. #}{% block title %}Copias de Seguridad | Piemonte{% endblock %}
+{# Define la sección de plantilla «extra_css», que la vista base o hija completa. #}{% block extra_css %}
+<style>
+    .backup-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 1.25rem; }
+    .backup-section-title { color: #173f3a; font-size: 1.05rem; font-weight: 800; }
+    .backup-path { display: block; overflow-wrap: anywhere; padding: .8rem 1rem; color: #17614f; background: #edf7f3; border: 1px solid #d6e9e2; border-radius: 9px; font-size: .9rem; }
+    .backup-table td { vertical-align: middle; }
+    .backup-folder-list { max-height: 50vh; overflow-y: auto; }
+    .backup-folder-item { display: flex; width: 100%; align-items: center; gap: .75rem; padding: .7rem .85rem; color: #29423e; background: #fff; border: 0; border-bottom: 1px solid #e7efec; text-align: left; }
+    .backup-folder-item:hover { background: #edf7f3; }
+    .backup-folder-path { overflow-wrap: anywhere; }
+    .backup-modal-icon { width: 48px; height: 48px; flex: 0 0 48px; }
+    @media (max-width: 900px) { .backup-grid { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{# Define la sección de plantilla «content», que la vista base o hija completa. #}{% block content %}
+<div class="page-heading">
+    <div class="page-heading-copy">
+        <h1 class="page-heading-title"><span class="page-heading-icon"><i class="fa-solid fa-database"></i></span>Copias de Seguridad</h1>
+        <p class="page-heading-description">Crea copias del proyecto completo o solo de la información, restaura datos y administra los respaldos.</p>
+    </div>
+    <div class="page-heading-actions"><a href="{% url 'dashboard' %}" class="btn btn-outline-secondary"><i class="fa-solid fa-arrow-left me-2"></i>Volver al dashboard</a></div>
+</div>
+
+<div class="backup-grid mb-4">
+{# Esta estructura presenta el bloque de sección visual de la pantalla. #}    <section class="card form-panel">
+        <div class="card-body">
+            <h2 class="backup-section-title"><i class="fa-solid fa-clock me-2"></i>Programación automática</h2>
+            <p class="text-muted">Elige la frecuencia y la carpeta de destino. La programación se calcula desde el momento en que guardas estos ajustes.</p>
+{# Esta estructura presenta el bloque de formulario de captura de la pantalla. #}            <form method="post" data-native-submit>
+                {% csrf_token %}
+                <input type="hidden" name="accion" value="guardar_programacion">
+                <div class="row g-3 align-items-end">
+                    <div class="col-sm-5">
+                        <label class="form-label" for="{{ form.intervalo.id_for_label }}">{{ form.intervalo.label }}</label>
+                        {{ form.intervalo }}
+{# Genera una sección repetida para cada elemento de «error in form.intervalo.errors». #}                        {% for error in form.intervalo.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                    </div>
+                    <div class="col-sm-7">
+                        <label class="form-label" for="{{ form.unidad_intervalo.id_for_label }}">{{ form.unidad_intervalo.label }}</label>
+                        {{ form.unidad_intervalo }}
+{# Genera una sección repetida para cada elemento de «error in form.unidad_intervalo.errors». #}                        {% for error in form.unidad_intervalo.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                    </div>
+                    <div class="col-12">
+                        <div class="form-check">
+                            {{ form.automaticas_activas }}
+                            <label class="form-check-label" for="{{ form.automaticas_activas.id_for_label }}">{{ form.automaticas_activas.label }}</label>
+                        </div>
+{# Genera una sección repetida para cada elemento de «error in form.automaticas_activas.errors». #}                        {% for error in form.automaticas_activas.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label" for="{{ form.ruta_destino.id_for_label }}">{{ form.ruta_destino.label }}</label>
+                        <div class="input-group">
+                            {{ form.ruta_destino }}
+                            <button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#selectorCarpetaCopias">
+                                <i class="fa-solid fa-folder-open me-2"></i>Seleccionar carpeta
+                            </button>
+                        </div>
+                        <div class="form-text">El selector muestra las carpetas disponibles para el equipo donde corre Piemonte. Déjala vacía para usar la carpeta predeterminada.</div>
+{# Genera una sección repetida para cada elemento de «error in form.ruta_destino.errors». #}                        {% for error in form.ruta_destino.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-success mt-4"><i class="fa-solid fa-floppy-disk me-2"></i>Guardar Cambios</button>
+            </form>
+            <div class="alert alert-info mt-4 mb-0">
+                <strong>Requisito para la ejecución automática:</strong> configura el Programador de tareas de Windows para ejecutar cada minuto, usando el mismo entorno del proyecto:
+                <code>python manage.py revisar_copias_seguridad</code>.
+                Cuando llega la frecuencia elegida, el comando crea o actualiza una copia del proyecto completo y otra solo de información.
+            </div>
+        </div>
+    </section>
+
+{# Esta estructura presenta el bloque de sección visual de la pantalla. #}    <section class="card form-panel">
+        <div class="card-body">
+            <h2 class="backup-section-title"><i class="fa-solid fa-box-archive me-2"></i>Crear copia manual</h2>
+            <p>Guarda una copia completa de la carpeta del programa, incluida la base de datos, los archivos multimedia y todos sus demás archivos, en un único archivo comprimido. Puedes cambiar la carpeta de destino arriba.</p>
+            <div class="mb-3">
+                <span class="form-label d-block">Carpeta de destino actual</span>
+                <code class="backup-path">{{ ruta_copias }}</code>
+            </div>
+            <p class="form-text">El ZIP incluye el programa, la base de datos y los archivos del proyecto. La recuperación del programa completo se hace fuera de la aplicación. Se conservan las 4 copias más recientes de este tipo; si el contenido es idéntico, se reemplaza la copia anterior por la más reciente.</p>
+{# Esta estructura presenta el bloque de formulario de captura de la pantalla. #}            <form method="post" data-native-submit>
+                {% csrf_token %}
+                <input type="hidden" name="accion" value="crear_manual">
+                <button type="submit" class="btn btn-success"><i class="fa-solid fa-shield-halved me-2"></i>Crear copia ahora</button>
+            </form>
+<hr>
+<h3 class="backup-section-title">Subir copia del proyecto completo</h3>
+<p class="form-text">Sube un ZIP de Piemonte para validarlo y guardarlo en la lista. No reemplaza ni ejecuta archivos del proyecto activo. Para recuperar el programa, detén Django y restaura el ZIP manualmente.</p>
+{# Esta estructura presenta el bloque de formulario de captura de la pantalla. #}            <form method="post" action="{% url 'subir_copia_proyecto' %}" enctype="multipart/form-data" data-native-submit onsubmit="return confirm('El ZIP se validará y guardará, pero no reemplazará el programa en ejecución. ¿Deseas continuar?');">
+    {% csrf_token %}
+    <div class="mb-3">
+        <label class="form-label" for="archivoCopiaProyecto">ZIP completo de Piemonte (máximo 2 GB)</label>
+        <input class="form-control" type="file" id="archivoCopiaProyecto" name="archivo_proyecto" accept=".zip" required>
+    </div>
+    <button type="submit" class="btn btn-outline-primary"><i class="fa-solid fa-upload me-2"></i>Subir ZIP del proyecto</button>
+</form>
+            <hr>
+            <dl class="row mb-0">
+                <dt class="col-sm-5">Última copia automática</dt>
+{# Muestra este contenido únicamente cuando se cumple la condición «configuracion.ultima_automatica». #}                <dd class="col-sm-7">{% if configuracion.ultima_automatica %}{{ configuracion.ultima_automatica|date:'d/m/Y H:i' }}{% else %}Aún no se ha ejecutado{% endif %}</dd>
+                <dt class="col-sm-5">Próxima ejecución</dt>
+{# Muestra este contenido únicamente cuando se cumple la condición «configuracion.automaticas_activas and configuracion.proxima_automatica». #}                <dd class="col-sm-7">{% if configuracion.automaticas_activas and configuracion.proxima_automatica %}{{ configuracion.proxima_automatica|date:'d/m/Y H:i' }}{% elif configuracion.automaticas_activas %}Se programará al iniciar el comando{% else %}Automáticas desactivadas{% endif %}</dd>
+            </dl>
+        </div>
+    </section>
+
+{# Esta estructura presenta el bloque de sección visual de la pantalla. #}    <section class="card form-panel">
+        <div class="card-body">
+            <h2 class="backup-section-title"><i class="fa-solid fa-database me-2"></i>Solo información</h2>
+            <p>Guarda únicamente una copia de la base de datos: SQLite usa el formato .sqlite3 y MySQL usa JSONL. No incluye el código ni los archivos multimedia. Se conservan las 4 copias más recientes de información.</p>
+{# Esta estructura presenta el bloque de formulario de captura de la pantalla. #}            <form method="post" class="mb-4" data-native-submit>
+                {% csrf_token %}
+                <input type="hidden" name="accion" value="crear_informacion">
+                <button type="submit" class="btn btn-success"><i class="fa-solid fa-database me-2"></i>Crear copia de información</button>
+            </form>
+            <hr>
+            <h3 class="backup-section-title">Restaurar información desde un archivo</h3>
+            <p class="form-text">La copia preventiva se crea automáticamente antes de importar. Se agregan registros faltantes; si hay conflicto, solo se reemplaza un registro cuando su fecha permite comprobar que la copia es más reciente. Si no se puede comparar, se conserva el registro actual.</p>
+{# Esta estructura presenta el bloque de formulario de captura de la pantalla. #}            <form method="post" action="{% url 'restaurar_copia_informacion' %}" enctype="multipart/form-data" data-confirm-modal="fusion" data-native-submit>
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label" for="archivoCopiaInformacion">Archivo de copia de información de Piemonte</label>
+                    <input class="form-control" type="file" id="archivoCopiaInformacion" name="archivo_copia" accept=".sqlite3,.db,.jsonl" required>
+                </div>
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="confirmarRestauracion" name="confirmar_restauracion" required>
+                    <label class="form-check-label" for="confirmarRestauracion">Confirmo que deseo fusionar esta información con la actual.</label>
+                </div>
+                <button type="submit" class="btn btn-outline-primary"><i class="fa-solid fa-upload me-2"></i>Subir y fusionar</button>
+            </form>
+        </div>
+    </section>
+</div>
+
+<div class="modal fade" id="confirmarFusionInformacion" tabindex="-1" aria-labelledby="tituloConfirmarFusionInformacion" aria-describedby="descripcionConfirmarFusionInformacion" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header border-0 pb-0">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="backup-modal-icon d-inline-flex align-items-center justify-content-center rounded-circle bg-success-subtle text-success">
+                        <i class="fa-solid fa-code-merge fs-5"></i>
+                    </span>
+                    <div>
+                        <div class="small text-success fw-bold text-uppercase">Importación segura</div>
+                        <h2 class="modal-title fs-5 fw-bold" id="tituloConfirmarFusionInformacion">¿Fusionar esta información?</h2>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body pt-3" id="descripcionConfirmarFusionInformacion">
+                <p>Se combinarán los datos del respaldo con la información que ya existe en Piemonte.</p>
+                <div class="alert alert-success border-0 rounded-3 mb-3">
+                    <i class="fa-solid fa-shield-heart me-2"></i>Los datos actuales se conservan; se agregan los registros que hagan falta. Antes se guardará una copia preventiva.
+                </div>
+                <div class="small text-muted">Archivo seleccionado</div>
+                <code class="d-block text-break mt-1" data-archivo-fusion>Sin archivo seleccionado</code>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Revisar archivo</button>
+                <button type="button" class="btn btn-success px-4" data-confirmar-accion>
+                    <i class="fa-solid fa-cloud-arrow-up me-2"></i>Subir y fusionar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="selectorCarpetaCopias" tabindex="-1" aria-labelledby="tituloSelectorCarpetaCopias" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title fs-5" id="tituloSelectorCarpetaCopias"><i class="fa-solid fa-folder-open me-2"></i>Seleccionar carpeta de destino</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <p class="small text-muted mb-2">Carpeta actual:</p>
+                <code class="backup-folder-path d-block mb-3" id="rutaActualSelectorCopias">Cargando carpetas...</code>
+                <div class="d-flex gap-2 mb-3">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="subirCarpetaCopias" disabled>
+                        <i class="fa-solid fa-arrow-up me-1"></i>Subir
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="raicesCarpetaCopias">
+                        <i class="fa-solid fa-hard-drive me-1"></i>Unidades
+                    </button>
+                </div>
+                <div class="backup-folder-list border rounded" id="listaCarpetasCopias" role="list"></div>
+                <div class="alert alert-danger mt-3 mb-0 d-none" id="errorCarpetasCopias" role="alert"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" id="usarCarpetaCopias" disabled>
+                    <i class="fa-solid fa-check me-2"></i>Guardar en esta carpeta
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Esta estructura presenta el bloque de sección visual de la pantalla. #}<section class="card form-panel">
+    <div class="card-body p-0">
+        <div class="p-4 border-bottom d-flex justify-content-between align-items-center">
+            <h2 class="backup-section-title mb-0">Copias disponibles</h2>
+            <span class="badge text-bg-secondary">{{ copias|length }} mostradas</span>
+        </div>
+        <div class="table-responsive">
+{# Esta estructura presenta el bloque de tabla de resultados de la pantalla. #}            <table class="table table-hover backup-table align-middle mb-0">
+                <thead class="table-light"><tr><th>Fecha</th><th>Alcance</th><th>Origen</th><th>Archivo</th><th>Tamaño</th><th class="text-end">Acciones</th></tr></thead>
+                <tbody>
+{# Genera una sección repetida para cada elemento de «copia in copias». #}                {% for copia in copias %}
+                    <tr>
+                        <td>{{ copia.creado_en|date:'d/m/Y H:i:s' }}</td>
+                        <td>{{ copia.get_alcance_display }}</td>
+{# Muestra este contenido únicamente cuando se cumple la condición «copia.tipo == 'automatica'». #}                        <td>{% if copia.tipo == 'automatica' %}<span class="badge text-bg-primary">Automática</span>{% else %}<span class="badge text-bg-success">Manual</span>{% endif %}</td>
+                        <td><code>{{ copia.archivo }}</code></td>
+                        <td>{{ copia.tamano_bytes|filesizeformat }}</td>
+                        <td class="text-end text-nowrap">
+                            <a class="btn btn-sm btn-outline-primary" href="{% url 'descargar_copia_seguridad' copia.pk %}" title="Descargar"><i class="fa-solid fa-download"></i><span class="visually-hidden">Descargar</span></a>
+{# Esta estructura presenta el bloque de formulario de captura de la pantalla. #}                            <form method="post" action="{% url 'eliminar_copia_seguridad' copia.pk %}" class="d-inline" data-native-submit data-confirm-delete data-delete-label="{{ copia.archivo }}" onsubmit="return confirm('¿Eliminar esta copia de seguridad?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar"><i class="fa-solid fa-trash"></i><span class="visually-hidden">Eliminar</span></button>
+                            </form>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="6" class="text-center text-muted py-4">Todavía no hay copias de seguridad. Puedes crear una manualmente.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{# Define la sección de plantilla «extra_js», que la vista base o hija completa. #}{% block extra_js %}
+<script>
+(() => {
+    const modalFusionElemento = document.getElementById('confirmarFusionInformacion');
+    const modalCarpetaElemento = document.getElementById('selectorCarpetaCopias');
+    [modalFusionElemento, modalCarpetaElemento].forEach((elemento) => {
+        if (elemento && elemento.parentElement !== document.body) {
+            document.body.appendChild(elemento);
+        }
+    });
+
+    let formularioPendiente = null;
+    let elementoModalPendiente = null;
+    const formulariosConfirmables = document.querySelectorAll('form[data-confirm-modal]');
+    const fusionArchivo = modalFusionElemento.querySelector('[data-archivo-fusion]');
+
+    const mostrarConfirmacion = (formulario) => {
+        const archivo = formulario.querySelector('input[type="file"]');
+        fusionArchivo.textContent = archivo && archivo.files.length
+            ? archivo.files[0].name
+            : 'Sin archivo seleccionado';
+        formularioPendiente = formulario;
+        elementoModalPendiente = modalFusionElemento;
+        if (window.bootstrap) {
+            bootstrap.Modal.getOrCreateInstance(modalFusionElemento).show();
+        } else if (window.confirm('Se fusionarán los datos y se creará una copia preventiva. ¿Deseas continuar?')) {
+            formulario.dataset.confirmado = 'true';
+            formulario.requestSubmit();
+        }
+    };
+
+    formulariosConfirmables.forEach((formulario) => {
+        formulario.addEventListener('submit', (evento) => {
+            if (formulario.dataset.confirmado === 'true') {
+                return;
+            }
+            evento.preventDefault();
+            if (!formulario.reportValidity()) {
+                return;
+            }
+            mostrarConfirmacion(formulario);
+        });
+    });
+
+    document.querySelectorAll('[data-confirmar-accion]').forEach((boton) => {
+        boton.addEventListener('click', () => {
+            if (!formularioPendiente) {
+                return;
+            }
+            formularioPendiente.dataset.confirmado = 'true';
+            formularioPendiente.requestSubmit();
+        });
+    });
+
+    modalFusionElemento.addEventListener('hidden.bs.modal', () => {
+        if (elementoModalPendiente === modalFusionElemento) {
+            formularioPendiente = null;
+            elementoModalPendiente = null;
+        }
+    });
+
+    const dialog = modalCarpetaElemento;
+    const endpoint = '{% url "explorar_carpetas_copias_seguridad" %}';
+    const campoDestino = document.getElementById('{{ form.ruta_destino.id_for_label }}');
+    const rutaActual = document.getElementById('rutaActualSelectorCopias');
+    const lista = document.getElementById('listaCarpetasCopias');
+    const error = document.getElementById('errorCarpetasCopias');
+    const subir = document.getElementById('subirCarpetaCopias');
+    const raices = document.getElementById('raicesCarpetaCopias');
+    const usar = document.getElementById('usarCarpetaCopias');
+    if (!dialog || !campoDestino || !window.bootstrap) return;
+
+    let carpetaActual = '';
+    let carpetaPadre = null;
+    const modal = new bootstrap.Modal(dialog);
+
+    const cargarCarpetas = async (ruta = '') => {
+        rutaActual.textContent = 'Cargando carpetas...';
+        lista.replaceChildren();
+        error.classList.add('d-none');
+        usar.disabled = true;
+        try {
+            const url = new URL(endpoint, window.location.href);
+            if (ruta) url.searchParams.set('ruta', ruta);
+            const respuesta = await fetch(url);
+            const datos = await respuesta.json();
+            if (!respuesta.ok) throw new Error(datos.error || 'No se pudieron cargar las carpetas.');
+
+            carpetaActual = datos.actual;
+            carpetaPadre = datos.padre || null;
+            rutaActual.textContent = datos.actual || 'Selecciona una unidad';
+            subir.disabled = !carpetaPadre;
+            usar.disabled = !carpetaActual;
+
+            if (!datos.carpetas.length) {
+                const vacio = document.createElement('p');
+                vacio.className = 'text-muted p-3 mb-0';
+                vacio.textContent = 'Esta ubicación no contiene carpetas disponibles.';
+                lista.append(vacio);
+            }
+
+            datos.carpetas.forEach((carpeta) => {
+                const boton = document.createElement('button');
+                boton.type = 'button';
+                boton.className = 'backup-folder-item';
+                boton.setAttribute('role', 'listitem');
+                const icono = document.createElement('i');
+                icono.className = 'fa-solid fa-folder text-warning';
+                const nombre = document.createElement('span');
+                nombre.textContent = carpeta.nombre;
+                boton.append(icono, nombre);
+                boton.addEventListener('click', () => cargarCarpetas(carpeta.ruta));
+                lista.append(boton);
+            });
+        } catch (fallo) {
+            rutaActual.textContent = carpetaActual || 'No disponible';
+            error.textContent = fallo.message;
+            error.classList.remove('d-none');
+        }
+    };
+
+    dialog.addEventListener('show.bs.modal', () => cargarCarpetas());
+    subir.addEventListener('click', () => {
+        if (carpetaPadre) cargarCarpetas(carpetaPadre);
+    });
+    raices.addEventListener('click', () => cargarCarpetas());
+    usar.addEventListener('click', () => {
+        campoDestino.value = carpetaActual;
+        modal.hide();
+        campoDestino.focus();
+    });
+})();
+</script>
+{% endblock %}

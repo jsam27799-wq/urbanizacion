@@ -1,0 +1,79 @@
+{# Módulo: Presenta la interfaz y los datos dinámicos de la vista «movimientos». #}{# Hereda la estructura común definida en «"BD/basex.html"». #}{% extends "BD/basex.html" %}
+{% load estados %}
+
+{# Define la sección de plantilla «title», que la vista base o hija completa. #}{% block title %}Todos los movimientos | Piemonte{% endblock %}
+{# Define la sección de plantilla «extra_css», que la vista base o hija completa. #}{% block extra_css %}
+<style>
+    .movimientos-table { font-size: .78rem; }
+    .movimientos-table th, .movimientos-table td { padding: .45rem .5rem; }
+    .movimientos-table th { white-space: nowrap; }
+    .movimientos-table td { line-height: 1.35; }
+    .movimientos-table .badge { font-size: .7rem; white-space: normal; }
+    .movimientos-table .fecha-movimiento { white-space: nowrap; }
+</style>
+{% endblock %}
+{# Define la sección de plantilla «content», que la vista base o hija completa. #}{% block content %}
+<div class="page-heading">
+    <div class="page-heading-copy"><h1 class="page-heading-title"><span class="page-heading-icon"><i class="fa-solid fa-clock-rotate-left"></i></span>Todos los movimientos</h1><p class="page-heading-description">Consulta y filtra la bitácora de registros de todos los módulos.</p></div>
+    <div class="page-heading-actions"><a href="{% url 'dashboard' %}" class="btn btn-outline-secondary"><i class="fa-solid fa-arrow-left me-2"></i>Volver</a></div>
+</div>
+
+<div class="card panel form-panel mb-4">
+    <div class="card-body">
+{# Esta estructura presenta el bloque de formulario de captura de la pantalla. #}        <form method="get">
+            <div class="row align-items-end">
+                <div class="col-md-3 mb-3"><label for="desde" class="form-label">Desde</label><input id="desde" name="desde" type="date" value="{{ filtros.desde }}" class="form-control"></div>
+                <div class="col-md-3 mb-3"><label for="hasta" class="form-label">Hasta</label><input id="hasta" name="hasta" type="date" value="{{ filtros.hasta }}" class="form-control"></div>
+                <div class="col-md-3 mb-3"><label for="dia" class="form-label">Día exacto</label><input id="dia" name="dia" type="date" value="{{ filtros.dia }}" class="form-control"></div>
+                <div class="col-md-3 mb-3"><label for="mes" class="form-label">Mes</label><input id="mes" name="mes" type="month" value="{{ filtros.mes }}" class="form-control"></div>
+                <div class="col-md-3 mb-3"><label for="ano" class="form-label">Año</label><input id="ano" name="ano" type="number" min="2000" max="2100" placeholder="2026" value="{{ filtros.ano }}" class="form-control"></div>
+{# Genera una sección repetida para cada elemento de «casa in casas_filtro». #}{# Muestra este contenido únicamente cuando se cumple la condición «filtros.casa == casa.pk|stringformat:'s'». #}                <div class="col-md-3 mb-3"><label for="casa" class="form-label">Casa</label><select id="casa" name="casa" class="form-select"><option value="">Todas las casas</option>{% for casa in casas_filtro %}<option value="{{ casa.pk }}" {% if filtros.casa == casa.pk|stringformat:'s' %}selected{% endif %}>Casa {{ casa.numero_casa }}</option>{% endfor %}</select></div>
+{# Genera una sección repetida para cada elemento de «tipo in tipos_movimiento». #}{# Muestra este contenido únicamente cuando se cumple la condición «filtros.tipo == tipo». #}                <div class="col-md-3 mb-3"><label for="tipo" class="form-label">Tipo de módulo</label><select id="tipo" name="tipo" class="form-select"><option value="">Todos los módulos</option>{% for tipo in tipos_movimiento %}<option value="{{ tipo }}" {% if filtros.tipo == tipo %}selected{% endif %}>{{ tipo }}</option>{% endfor %}</select></div>
+                <div class="col-md-6 mb-3 d-flex gap-2"><button type="submit" class="btn btn-success"><i class="fa-solid fa-filter me-2"></i>Filtrar</button><a href="{% url 'movimientos' %}" class="btn btn-outline-secondary">Limpiar filtros</a></div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card panel">
+    <div class="card-body p-0">
+        <div class="p-4 border-bottom d-flex justify-content-between align-items-center"><h2 class="h5 mb-0">Historial de movimientos</h2><span class="badge text-bg-secondary">{{ procesos|length }} resultados</span></div>
+        <div class="table-responsive registros-scroll">
+{# Esta estructura presenta el bloque de tabla de resultados de la pantalla. #}            <table class="table table-hover align-middle mb-0 movimientos-table">
+                <thead class="table-light"><tr><th>Fecha / Hora</th><th>Módulo</th><th>Estado</th><th>Registro</th><th>Casa</th><th>Información</th><th>Responsable</th><th class="text-end">Detalles</th></tr></thead>
+                <tbody>
+{# Genera una sección repetida para cada elemento de «proceso in procesos». #}                {% for proceso in procesos %}
+{# Muestra este contenido únicamente cuando se cumple la condición «proceso.tipo == 'Visitante'». #}{# Muestra este contenido únicamente cuando se cumple la condición «proceso.tipo == 'Visitante'». #}{# Muestra este contenido únicamente cuando se cumple la condición «proceso.casa». #}{# Muestra este contenido únicamente cuando se cumple la condición «proceso.descripcion». #}{# Muestra este contenido únicamente cuando se cumple la condición «proceso.guardia». #}                    <tr><td class="fecha-movimiento">{{ proceso.fecha|date:'d/m/Y H:i' }}</td><td><span class="badge tipo-movimiento {% if proceso.tipo == 'Visitante' %}tipo-movimiento-visitante{% elif proceso.tipo == 'Domicilio' %}tipo-movimiento-domicilio{% elif proceso.tipo == 'Paquete' %}tipo-movimiento-paquete{% elif proceso.tipo == 'Pago' %}tipo-movimiento-pago{% elif proceso.tipo == 'Nota' or proceso.tipo == 'Novedad' %}tipo-movimiento-nota{% else %}tipo-movimiento-otro{% endif %}"><i class="fa-solid {% if proceso.tipo == 'Visitante' %}fa-person-walking{% elif proceso.tipo == 'Domicilio' %}fa-motorcycle{% elif proceso.tipo == 'Paquete' %}fa-box{% elif proceso.tipo == 'Pago' %}fa-money-bill-wave{% elif proceso.tipo == 'Nota' or proceso.tipo == 'Novedad' %}fa-note-sticky{% elif proceso.tipo == 'Casa' %}fa-house{% elif proceso.tipo == 'Propietario' or proceso.tipo == 'Residente' %}fa-users{% elif proceso.tipo == 'Guardia' or proceso.tipo == 'Usuario' %}fa-user-shield{% elif proceso.tipo == 'Reseña' %}fa-star{% else %}fa-circle-question{% endif %}"></i>{{ proceso.tipo }}</span></td><td>{% estado_ui proceso.tipo|lower proceso.estado as estado_visual %}<span class="badge" style="background-color: {{ estado_visual.color }}; color: {{ estado_visual.color_texto }};">{{ estado_visual.nombre }}</span></td><td>{{ proceso.nombre }}</td><td>{% if proceso.casa %}Casa {{ proceso.casa.numero_casa }}{% else %}<span class="text-muted">No aplica</span>{% endif %}</td><td>{% if proceso.descripcion %}{{ proceso.descripcion|truncatechars:80 }}{% else %}<span class="text-muted">No aplica</span>{% endif %}</td><td>{% if proceso.guardia %}{{ proceso.guardia.nombre }} {{ proceso.guardia.apellido }}{% else %}<span class="text-muted">No aplica</span>{% endif %}</td><td class="text-end"><button type="button" class="btn btn-sm btn-light border" data-bs-toggle="modal" data-bs-target="#detalleMovimiento{{ proceso.id }}" title="Ver detalle"><i class="fa-solid fa-eye"></i><span class="visually-hidden">Ver detalle del movimiento</span></button></td></tr>
+                {% empty %}<tr><td colspan="8" class="text-center text-muted py-4">No hay registros con esos filtros.</td></tr>{% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{# Genera una sección repetida para cada elemento de «proceso in procesos». #}{% for proceso in procesos %}
+<div class="modal fade" id="detalleMovimiento{{ proceso.id }}" tabindex="-1" aria-labelledby="detalleMovimientoLabel{{ proceso.id }}" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title fs-5" id="detalleMovimientoLabel{{ proceso.id }}">Detalle del movimiento</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-5">Módulo</dt><dd class="col-sm-7">{{ proceso.tipo }}</dd>
+                    <dt class="col-sm-5">Acción</dt><dd class="col-sm-7">{{ proceso.accion }}</dd>
+                    <dt class="col-sm-5">Registro</dt><dd class="col-sm-7">{{ proceso.nombre }}</dd>
+{# Muestra este contenido únicamente cuando se cumple la condición «proceso.casa». #}                    <dt class="col-sm-5">Casa</dt><dd class="col-sm-7">{% if proceso.casa %}Casa {{ proceso.casa.numero_casa }}{% else %}No aplica{% endif %}</dd>
+{# Muestra este contenido únicamente cuando se cumple la condición «proceso.guardia». #}                    <dt class="col-sm-5">Responsable</dt><dd class="col-sm-7">{% if proceso.guardia %}{{ proceso.guardia.nombre }} {{ proceso.guardia.apellido }}{% else %}No aplica{% endif %}</dd>
+                    <dt class="col-sm-5">Fecha</dt><dd class="col-sm-7">{{ proceso.fecha|date:'d/m/Y H:i' }}</dd>
+{# Muestra este contenido únicamente cuando se cumple la condición «proceso.placa». #}                    {% if proceso.placa %}<dt class="col-sm-5">Vehículo</dt><dd class="col-sm-7">{{ proceso.vehiculo_tipo }} - {{ proceso.placa }}</dd>{% endif %}
+                    <dt class="col-sm-5">Estado</dt><dd class="col-sm-7">{% estado_ui proceso.tipo|lower proceso.estado as estado_visual %}<span class="badge" style="background-color: {{ estado_visual.color }}; color: {{ estado_visual.color_texto }};">{{ estado_visual.nombre }}</span></dd>
+{# Muestra este contenido únicamente cuando se cumple la condición «proceso.descripcion». #}                    {% if proceso.descripcion %}<dt class="col-sm-5">Descripción</dt><dd class="col-sm-7">{{ proceso.descripcion }}</dd>{% endif %}
+{# Genera una sección repetida para cada elemento de «detalle in proceso.detalles». #}                    {% for detalle in proceso.detalles %}<dt class="col-sm-5">{{ detalle.0 }}</dt><dd class="col-sm-7">{{ detalle.1 }}</dd>{% endfor %}
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}

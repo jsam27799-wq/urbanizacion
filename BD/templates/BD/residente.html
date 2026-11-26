@@ -1,0 +1,72 @@
+{# Módulo: Presenta la interfaz y los datos dinámicos de la vista «residente». #}{# Hereda la estructura común definida en «"BD/basex.html"». #}	{% extends "BD/basex.html" %}
+
+{# Define la sección de plantilla «title», que la vista base o hija completa. #}	{% block title %}Residentes | Piemonte{% endblock %}
+{# Define la sección de plantilla «extra_css», que la vista base o hija completa. #}	{% block extra_css %}<style>.panel { border: 0; border-radius: 10px; box-shadow: 0 4px 18px rgba(38, 50, 56, .08); } .table th { white-space: nowrap; }</style>{% endblock %}
+{# Define la sección de plantilla «content», que la vista base o hija completa. #}	{% block content %}
+			<div class="page-heading">
+				<div class="page-heading-copy"><h1 class="page-heading-title"><span class="page-heading-icon"><i class="fa-solid fa-users"></i></span>Gestión de residentes</h1><p class="page-heading-description">Consulta y administra los residentes registrados.</p></div>
+				<div class="page-heading-actions"><a href="{% url 'logout' %}" class="btn btn-outline-secondary"><i class="fa-solid fa-right-from-bracket me-2"></i>Cerrar sesión</a></div>
+			</div>
+
+			<div class="row g-4">
+{# Esta estructura presenta el bloque de sección visual de la pantalla. #}				<section class="col-12">
+					<div class="card panel form-panel">
+						<div class="card-body p-4">
+{# Muestra este contenido únicamente cuando se cumple la condición «residente_editando». #}							<h2 class="h5 mb-3">{% if residente_editando %}Editar residente{% else %}Registrar residente{% endif %}</h2>
+{# Esta estructura presenta el bloque de formulario de captura de la pantalla. #}							<form method="post">
+								{% csrf_token %}
+								<div class="row">
+{# Genera una sección repetida para cada elemento de «field in form». #}								{% for field in form %}
+									<div class="col-md-6 mb-3">
+										<label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+										{{ field }}
+{# Genera una sección repetida para cada elemento de «error in field.errors». #}										{% for error in field.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+									</div>
+								{% endfor %}
+								</div>
+{# Muestra este contenido únicamente cuando se cumple la condición «form.non_field_errors». #}								{% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+								<div class="d-flex gap-2">
+									<button type="submit" class="btn btn-success"><i class="fa-solid fa-floppy-disk me-2"></i>Guardar</button>
+{# Muestra este contenido únicamente cuando se cumple la condición «residente_editando». #}									{% if residente_editando %}<a href="{% url 'residentes' %}" class="btn btn-outline-secondary">Cancelar</a>{% endif %}
+								</div>
+							</form>
+						</div>
+					</div>
+				</section>
+
+{# Esta estructura presenta el bloque de sección visual de la pantalla. #}				<section class="col-12">
+					<div class="card panel">
+						<div class="card-body p-0">
+							<div class="p-4 border-bottom d-flex justify-content-between align-items-center">
+								<h2 class="h5 mb-0">Residentes registrados</h2>
+								<span class="badge text-bg-secondary">{{ residentes|length }} total</span>
+							</div>
+							<div class="table-responsive registros-scroll">
+{# Esta estructura presenta el bloque de tabla de resultados de la pantalla. #}								<table class="table table-hover align-middle mb-0">
+									<thead class="table-light"><tr><th>Cédula</th><th>Nombre completo</th><th>Teléfono</th><th class="text-end">Acciones</th></tr></thead>
+									<tbody>
+{# Genera una sección repetida para cada elemento de «residente in residentes». #}										{% for residente in residentes %}
+											<tr>
+												<td>{{ residente.cedula }}</td>
+												<td>{{ residente.nombre }} {{ residente.apellido }}</td>
+												<td>{{ residente.telefono|default:'Sin teléfono' }}</td>
+												<td class="text-end text-nowrap">
+													<a href="{% url 'editar_residente' residente.id_residente %}" class="btn btn-sm btn-outline-primary" title="Editar"><i class="fa-solid fa-pen-to-square"></i><span class="visually-hidden">Editar</span></a>
+{# Esta estructura presenta el bloque de formulario de captura de la pantalla. #}													<form method="post" class="d-inline" onsubmit="return confirm('¿Eliminar este residente?');">
+														{% csrf_token %}<input type="hidden" name="action" value="delete">
+														<input type="hidden" name="residente_id" value="{{ residente.id_residente }}">
+														<button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar"><i class="fa-solid fa-trash"></i><span class="visually-hidden">Eliminar</span></button>
+													</form>
+												</td>
+											</tr>
+										{% empty %}
+											<tr><td colspan="4" class="text-center text-muted py-5">No hay residentes registrados.</td></tr>
+										{% endfor %}
+									</tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+				</section>
+			</div>
+	{% endblock %}

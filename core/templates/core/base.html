@@ -1,0 +1,138 @@
+{# Módulo: Presenta la interfaz y los datos dinámicos de la vista «base». #}{% load static%}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Piemonte{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'core/css/tooplate-strategic-style.css' %}?v=37">
+    <link rel="stylesheet" href="{% static 'core/css/floating-help.css' %}?v=7">
+    <link rel="stylesheet" href="{% static 'core/css/notification-modal.css' %}">
+<!--
+
+Tooplate 2149 Strategic Consulting
+
+https://www.tooplate.com/view/2149-strategic-consulting
+
+Free HTML CSS Template
+
+-->
+</head>
+<body class="public-site">
+    <!-- Navigation -->
+{# Esta estructura presenta el bloque de navegación de la pantalla. #}    <nav class="navbar">
+        <div class="nav-container">
+            <a href="#home" class="logo">
+                <div class="logo-icon">
+                    <img src="{% static 'core/images/logo.png' %}" alt="Logo" width="60" height="60" >
+                </div>
+                <span>Urbanización Piemonte</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="/">Menu</a></li>
+                <li><a href="#services">Servicios</a></li>
+                <li><a href="#about">Sobre Nosotros</a></li>
+                <li><a href="#team">Novedades</a></li>
+                <li><a href="#testimonials">Reseñas</a></li>
+            </ul>
+            <div class="mobile-menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+{# Define la sección de plantilla «content», que la vista base o hija completa. #}     {% block content %} {% endblock %}
+    {% include "core/includes/notification_modal.html" %}
+    {% include "core/includes/floating_help.html" %}
+{# Muestra este contenido únicamente cuando se cumple la condición «request.path != "/"». #}    {% if request.path != "/" %}
+    {% endif %}
+
+    <!-- Footer -->
+{# Esta estructura presenta el bloque de pie de página de la pantalla. #}<footer class="piemonte-footer">
+
+    <div class="piemonte-footer-container">
+
+        <!-- Marca -->
+        <div class="piemonte-footer-brand">
+            <img src="{% static 'core/images/logo.png' %}"
+                 alt="Urbanización Piemonte"
+                 class="piemonte-footer-logo">
+                 
+                 <h3>Urbanización Piemonte</h3>
+                 
+                 <p>
+                     Plataforma web para la gestión y administración
+                     de la Urbanización.
+                    </p>
+                    
+                </div>
+                
+                <!-- Autores -->
+                <div class="piemonte-footer-section">
+                    
+                    <h4>Autores</h4>
+                    
+            <p>Luis Eduardo Cifuentes</p>
+            <p>José Alejandro Duarte Muñoz</p>
+            <p>Mateo Londoño Colorado</p>
+            
+        </div>
+
+
+        <!-- Contacto -->
+        <div class="piemonte-footer-section">
+
+            <h4>Contacto</h4>
+
+            <p>☎ &nbsp; +57 302 2100687</p>
+            <small>Administración</small>
+
+            <p>☎ &nbsp; +57 323 6669030</p>
+            <small>Desarrollador</small>
+            
+            <p>☎ &nbsp; +57 311 3138258</p>
+            <small>Desarrollador</small>
+
+            <p>✉ &nbsp; piemonte62130@gmail.com</p>
+
+        </div>
+
+        <div class="piemonte-footer-section">
+            <h3>Nuestra Ubicación</h3>
+            <!-- El enlace largo de Google Maps va exactamente dentro de las comillas de src -->
+            <iframe 
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.8330889898166!2d-75.65044312501016!3d6.153103593833991!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8e4681138fafb327%3A0xa749cd5788acedbe!2spiemonte!5e0!3m2!1ses!2sco!4v1789964070371!5m2!1ses!2sco"
+                width="300"
+                height="200" 
+                style="border: 0; border-radius: 10px; overflow: hidden;" 
+                allowfullscreen="" 
+                loading="lazy" 
+                referrerpolicy="strict-origin-when-cross-origin">
+            </iframe>
+        </div>
+    </div>
+    <img src="{% static 'core/images/sena.png' %}"
+         alt="LogoSena"
+         class="sena-footer-logo">
+
+
+    <!-- Copyright -->
+    <div class="piemonte-footer-bottom">
+        <!-- HTML (Usando clases nativas de Bootstrap 5) -->
+        {# Esta estructura presenta el bloque de pie de página de la pantalla. #}<footer class="bg-dark text-light fixed-bottom py-2 overflow-hidden border-top border-secondary">
+            <div class="carrusel-texto">
+                <span>© 2026 SENA · Proyecto Piemonte &nbsp;&nbsp;---&nbsp;&nbsp; <span class="text-info">Aviso de privacidad no publicado</span></span>
+            </div>
+        </footer>
+        
+    </div>
+
+</footer>
+
+<script src="{% static 'core/js/tooplate-strategic-scripts.js' %}?v=7"></script>
+<script src="{% static 'core/js/floating-help.js' %}?v=4"></script>
+<script src="{% static 'core/js/notification-modal.js' %}"></script>
+</body>
+</html>

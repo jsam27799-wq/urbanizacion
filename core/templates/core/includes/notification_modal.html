@@ -1,0 +1,35 @@
+{% if messages %}
+<dialog id="siteNotificationModal" class="site-notification" data-notification-modal aria-labelledby="site-notification-title">
+    <div class="site-notification__card">
+        <div class="site-notification__header">
+            {% for message in messages %}
+                {% if forloop.first %}
+                    <span class="site-notification__icon{% if 'error' in message.tags %} is-error{% elif 'warning' in message.tags %} is-warning{% elif 'success' in message.tags %} is-success{% endif %}" aria-hidden="true">
+                        {% if 'success' in message.tags %}&#10003;{% elif 'warning' in message.tags or 'error' in message.tags %}!{% else %}i{% endif %}
+                    </span>
+                    <div>
+                        <span class="site-notification__eyebrow">Urbanización Piemonte</span>
+                        <h2 id="site-notification-title" class="site-notification__title">
+                            {% if 'casa-protegida' in message.tags %}Casa protegida{% elif 'error' in message.tags %}No se pudo completar{% elif 'warning' in message.tags %}Atención{% elif 'success' in message.tags %}¡Listo!{% else %}Aviso importante{% endif %}
+                        </h2>
+                    </div>
+                {% endif %}
+            {% endfor %}
+            <button type="button" class="site-notification__close" data-notification-close aria-label="Cerrar">×</button>
+        </div>
+        <div class="site-notification__body" aria-live="polite">
+            {% for message in messages %}
+                <div class="site-notification__message{% if 'error' in message.tags %} is-error{% elif 'warning' in message.tags %} is-warning{% elif 'success' in message.tags %} is-success{% endif %}" data-notification-item>
+                    <span class="site-notification__message-icon" aria-hidden="true">
+                        {% if 'success' in message.tags %}&#10003;{% elif 'warning' in message.tags or 'error' in message.tags %}!{% else %}i{% endif %}
+                    </span>
+                    <p>{{ message }}</p>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="site-notification__footer">
+            <button type="button" class="site-notification__button" data-notification-close>Entendido</button>
+        </div>
+    </div>
+</dialog>
+{% endif %}

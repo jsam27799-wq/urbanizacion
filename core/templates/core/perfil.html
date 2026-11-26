@@ -1,0 +1,137 @@
+{# Módulo: Presenta la interfaz y los datos dinámicos de la vista «perfil». #}{# Hereda la estructura común definida en «"BD/basex.html"». #}{% extends "BD/basex.html" %}
+
+{# Define la sección de plantilla «title», que la vista base o hija completa. #}{% block title %}Mi perfil | Piemonte{% endblock %}
+
+{# Define la sección de plantilla «content», que la vista base o hija completa. #}{% block content %}
+<div class="page-heading">
+    <div class="page-heading-copy">
+        <h1 class="page-heading-title"><span class="page-heading-icon"><i class="fa-solid fa-user"></i></span>Mi perfil</h1>
+        <p class="page-heading-description">Actualiza tus datos personales y tu contraseña de acceso.</p>
+    </div>
+    <div class="page-heading-actions"><a href="{% url 'dashboard' %}" class="btn btn-outline-secondary"><i class="fa-solid fa-arrow-left me-2"></i>Volver</a></div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card form-panel h-100">
+            <div class="card-body">
+                <h2 class="h5 mb-3">Datos personales</h2>
+{# Esta estructura presenta el bloque de formulario de captura de la pantalla. #}                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="accion" value="perfil">
+                    <div class="mb-3">
+                        <label class="form-label">Usuario de acceso</label>
+                        <input class="form-control" value="{{ request.user.username }}" readonly>
+                        <div class="form-text">El usuario no se puede modificar.</div>
+                    </div>
+{# Genera una sección repetida para cada elemento de «field in perfil_form». #}                    {% for field in perfil_form %}
+                    {% if field.name != 'codigo_pais' and field.name != 'telefono' %}
+                    <div class="mb-3">
+                        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                        {{ field }}
+{# Genera una sección repetida para cada elemento de «error in field.errors». #}                        {% for error in field.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                    <div class="row g-2 mb-3">
+                        <div class="col-sm-5">
+                            <label for="{{ perfil_form.codigo_pais.id_for_label }}" class="form-label">{{ perfil_form.codigo_pais.label }}</label>
+                            {{ perfil_form.codigo_pais }}
+                            {% for error in perfil_form.codigo_pais.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                        </div>
+                        <div class="col-sm-7">
+                            <label for="{{ perfil_form.telefono.id_for_label }}" class="form-label">{{ perfil_form.telefono.label }}</label>
+                            {{ perfil_form.telefono }}
+                            {% for error in perfil_form.telefono.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                            <div class="form-text">Elige el país e ingresa el número nacional. Número completo: <strong data-phone-preview>+57 323-6669030</strong></div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success"><i class="fa-solid fa-floppy-disk me-2"></i>Guardar datos</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card form-panel h-100">
+            <div class="card-body">
+                <h2 class="h5 mb-3">Cambiar contraseña</h2>
+{# Esta estructura presenta el bloque de formulario de captura de la pantalla. #}                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="accion" value="password">
+{# Genera una sección repetida para cada elemento de «field in password_form». #}                    {% for field in password_form %}
+                    <div class="mb-3">
+                        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                        {{ field }}
+{# Genera una sección repetida para cada elemento de «error in field.errors». #}                        {% for error in field.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                    </div>
+                    {% endfor %}
+{# Muestra este contenido únicamente cuando se cumple la condición «password_form.non_field_errors». #}                    {% if password_form.non_field_errors %}<div class="alert alert-danger">{{ password_form.non_field_errors }}</div>{% endif %}
+                    <button type="submit" class="btn btn-success"><i class="fa-solid fa-key me-2"></i>Actualizar contraseña</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+(() => {
+    const selector = document.getElementById('{{ perfil_form.codigo_pais.id_for_label }}');
+    if (!selector) return;
+    const telefono = document.getElementById('{{ perfil_form.telefono.id_for_label }}');
+    const vistaPrevia = document.querySelector('[data-phone-preview]');
+    const prioridades = ['CO', 'US', 'MX', 'CA', 'AR', 'BR', 'CL', 'EC', 'PE', 'ES', 'GB'];
+    if (typeof Intl.DisplayNames === 'function') {
+        const nombresRegion = new Intl.DisplayNames(['es'], {type: 'region'});
+        const opciones = Array.from(selector.options).map((option) => {
+            const coincide = option.textContent.match(/^([A-Z]{2,3}) \(\+(\d+)\)$/);
+            if (!coincide) return {option, region: '', nombre: option.textContent};
+
+            const [, region, codigo] = coincide;
+            const nombre = nombresRegion.of(region) || region;
+            option.textContent = `${nombre} (${region}) +${codigo}`;
+            return {option, region, nombre};
+        });
+
+        opciones.sort((a, b) => {
+            const prioridadA = prioridades.indexOf(a.region);
+            const prioridadB = prioridades.indexOf(b.region);
+            if (prioridadA !== -1 || prioridadB !== -1) {
+                return (prioridadA === -1 ? prioridades.length : prioridadA) -
+                    (prioridadB === -1 ? prioridades.length : prioridadB);
+            }
+            return a.nombre.localeCompare(b.nombre, 'es');
+        });
+
+        const valorSeleccionado = selector.value;
+        opciones.forEach(({option}) => selector.append(option));
+        selector.value = valorSeleccionado;
+    }
+
+    const actualizarVistaPrevia = () => {
+        const codigo = selector.selectedOptions[0]?.textContent.match(/\+(\d+)$/)?.[1];
+        if (!codigo || !telefono || !vistaPrevia) return;
+
+        const valor = telefono.value.trim();
+        if (!valor) {
+            vistaPrevia.textContent = selector.value === 'CO' ? '+57 323-6669030' : `+${codigo}`;
+            return;
+        }
+
+        let digitos = valor.replace(/\D/g, '');
+        if (valor.startsWith('+') && digitos.startsWith(codigo)) {
+            digitos = digitos.slice(codigo.length);
+        }
+        const numeroNacional = selector.value === 'CO' && digitos.length === 10
+            ? `${digitos.slice(0, 3)}-${digitos.slice(3)}`
+            : valor;
+        const prefijo = valor.startsWith('+') && !valor.replace(/\D/g, '').startsWith(codigo)
+            ? ''
+            : `+${codigo} `;
+        vistaPrevia.textContent = `${prefijo}${numeroNacional}`;
+    };
+
+    selector.addEventListener('change', actualizarVistaPrevia);
+    telefono?.addEventListener('input', actualizarVistaPrevia);
+    actualizarVistaPrevia();
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,97 @@
+{# Módulo: Presenta la interfaz y los datos dinámicos de la vista «guardia». #}{# Hereda la estructura común definida en «"BD/basex.html"». #}{% extends "BD/basex.html" %}
+
+{# Define la sección de plantilla «title», que la vista base o hija completa. #}{% block title %}Registrar guardia | Piemonte{% endblock %}
+{# Define la sección de plantilla «extra_css», que la vista base o hija completa. #}{% block extra_css %}<style>.panel { border: 0; border-radius: 10px; box-shadow: 0 4px 18px rgba(38, 50, 56, .1); }</style>{% endblock %}
+{# Define la sección de plantilla «content», que la vista base o hija completa. #}{% block content %}
+<div class="page-heading">
+{# Muestra este contenido únicamente cuando se cumple la condición «guardia_editando». #}{# Muestra este contenido únicamente cuando se cumple la condición «guardia_editando». #}    <div class="page-heading-copy"><h1 class="page-heading-title"><span class="page-heading-icon"><i class="fa-solid fa-user-shield"></i></span>{% if guardia_editando %}Editar guardia{% else %}Registrar guardia{% endif %}</h1><p class="page-heading-description">{% if guardia_editando %}Actualiza los datos y las credenciales de acceso del guardia.{% else %}Registra sus datos y crea sus credenciales de acceso.{% endif %}</p></div>
+    <div class="page-heading-actions"><a href="{% url 'logout' %}" class="btn btn-outline-secondary"><i class="fa-solid fa-right-from-bracket me-2"></i>Cerrar sesión</a></div>
+</div>
+
+
+<div class="card panel form-panel">
+    <div class="card-body p-4 p-md-5">
+{# Esta estructura presenta el bloque de formulario de captura de la pantalla. #}        <form method="post">
+            {% csrf_token %}
+            <div class="row">
+{# Genera una sección repetida para cada elemento de «field in form». #}                {% for field in form %}
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                        {{ field }}
+{# Muestra este contenido únicamente cuando se cumple la condición «field.name == 'password'». #}                        {% if field.name == 'password' %}
+                            <ul class="password-requirements list-unstyled small mt-2 mb-0" data-password-requirements="{{ field.id_for_label }}">
+                                <li data-requirement="length"><i class="fa-solid fa-circle-xmark me-1"></i>Mínimo 8 caracteres</li>
+                                <li data-requirement="uppercase"><i class="fa-solid fa-circle-xmark me-1"></i>Una letra mayúscula</li>
+                                <li data-requirement="special"><i class="fa-solid fa-circle-xmark me-1"></i>Un carácter especial</li>
+                            </ul>
+                        {% elif field.name == 'password_confirmacion' %}
+                            <div class="small mt-2" data-password-confirmation-feedback></div>
+                        {% elif field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+{# Muestra este contenido únicamente cuando se cumple la condición «field.name != 'password'». #}                        {% if field.name != 'password' %}
+{# Genera una sección repetida para cada elemento de «error in field.errors». #}                            {% for error in field.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+{# Muestra este contenido únicamente cuando se cumple la condición «form.non_field_errors». #}            {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+{# Muestra este contenido únicamente cuando se cumple la condición «guardia_editando». #}            <button type="submit" class="btn btn-success"><i class="fa-solid fa-floppy-disk me-2"></i>{% if guardia_editando %}Guardar cambios{% else %}Guardar guardia{% endif %}</button>
+{# Muestra este contenido únicamente cuando se cumple la condición «guardia_editando». #}            {% if guardia_editando %}<a href="{% url 'registrar_guardia' %}" class="btn btn-outline-secondary">Cancelar</a>{% endif %}
+        </form>
+    </div>
+</div>
+<div class="card panel mt-4">
+    <div class="card-body p-0">
+        <div class="p-4 border-bottom d-flex justify-content-between align-items-center"><h2 class="h5 mb-0">Guardias registrados</h2><span class="badge text-bg-secondary">{{ guardias|length }} total</span></div>
+{# Esta estructura presenta el bloque de tabla de resultados de la pantalla. #}        <div class="table-responsive registros-scroll"><table class="table table-hover align-middle mb-0"><thead class="table-light"><tr><th>Cédula</th><th>Nombre</th><th>Teléfono</th><th>Turno</th><th>Estado</th><th class="text-end">Acciones</th></tr></thead><tbody>
+{# Genera una sección repetida para cada elemento de «guardia in guardias». #}{# Muestra este contenido únicamente cuando se cumple la condición «guardia.usuario and guardia.usuario.is_active». #}{# Esta estructura presenta el bloque de formulario de captura de la pantalla. #}            {% for guardia in guardias %}<tr><td>{{ guardia.cedula }}</td><td>{{ guardia.nombre }} {{ guardia.apellido }}</td><td>{{ guardia.telefono|default:'Sin teléfono' }}</td><td>{{ guardia.turno|default:'Sin turno' }}</td><td>{% if guardia.usuario and guardia.usuario.is_active %}<span class="badge text-bg-success">Activa</span>{% elif guardia.usuario %}<span class="badge text-bg-secondary">Inactiva</span>{% else %}<span class="badge text-bg-warning">Sin cuenta</span>{% endif %}</td><td class="text-end text-nowrap"><a href="{% url 'editar_guardia' guardia.id_guardia %}" class="btn btn-sm btn-outline-primary" title="Editar"><i class="fa-solid fa-pen-to-square"></i><span class="visually-hidden">Editar</span></a><form method="post" class="d-inline" onsubmit="return confirm('¿Eliminar este guardia?');">{% csrf_token %}<input type="hidden" name="action" value="delete"><input type="hidden" name="guardia_id" value="{{ guardia.id_guardia }}"><button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar"><i class="fa-solid fa-trash"></i><span class="visually-hidden">Eliminar</span></button></form></td></tr>{% empty %}<tr><td colspan="6" class="text-center text-muted py-4">No hay guardias registrados.</td></tr>{% endfor %}
+        </tbody></table></div>
+    </div>
+</div>
+{% endblock %}
+
+{# Define la sección de plantilla «extra_js», que la vista base o hija completa. #}{% block extra_js %}
+<script>
+(() => {
+    document.querySelectorAll('[data-password-requirements]').forEach((lista) => {
+        const password = document.getElementById(lista.dataset.passwordRequirements);
+        if (!password) return;
+        const actualizar = () => {
+            const valor = password.value;
+            const requisitos = {
+                length: valor.length >= 8,
+                uppercase: /[A-Z]/.test(valor),
+                special: /[^A-Za-z0-9]/.test(valor),
+            };
+            Object.entries(requisitos).forEach(([nombre, cumplido]) => {
+                const requisito = lista.querySelector(`[data-requirement="${nombre}"]`);
+                const icono = requisito.querySelector('i');
+                requisito.classList.toggle('text-success', cumplido);
+                requisito.classList.toggle('text-danger', !cumplido);
+                icono.className = cumplido
+                    ? 'fa-solid fa-circle-check me-1'
+                    : 'fa-solid fa-circle-xmark me-1';
+            });
+        };
+        password.addEventListener('input', actualizar);
+        actualizar();
+    });
+
+    const password = document.querySelector('[name="password"]');
+    const confirmacion = document.querySelector('[name="password_confirmacion"]');
+    const feedback = document.querySelector('[data-password-confirmation-feedback]');
+    const actualizarConfirmacion = () => {
+        if (!password || !confirmacion || !feedback) return;
+        const correcta = confirmacion.value !== '' && confirmacion.value === password.value;
+        confirmacion.classList.toggle('is-valid', correcta);
+        confirmacion.classList.toggle('is-invalid', !correcta);
+        feedback.className = correcta ? 'small mt-2 text-success' : 'small mt-2 text-danger';
+        feedback.textContent = correcta ? 'Las contraseñas coinciden.' : 'Las contraseñas no coinciden.';
+    };
+    if (password && confirmacion) {
+        password.addEventListener('input', actualizarConfirmacion);
+        confirmacion.addEventListener('input', actualizarConfirmacion);
+        actualizarConfirmacion();
+    }
+})();
+</script>
+{% endblock %}

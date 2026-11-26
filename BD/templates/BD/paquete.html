@@ -1,0 +1,136 @@
+{# Módulo: Presenta la interfaz y los datos dinámicos de la vista «paquete». #}{# Hereda la estructura común definida en «"BD/basex.html"». #}{% extends "BD/basex.html" %}
+{% load estados %}
+
+{# Define la sección de plantilla «title», que la vista base o hija completa. #}{% block title %}Registrar paquete | Piemonte{% endblock %}
+{# Define la sección de plantilla «extra_css», que la vista base o hija completa. #}{% block extra_css %}<style>.panel { border: 0; border-radius: 10px; box-shadow: 0 4px 18px rgba(38, 50, 56, .1); }</style>{% endblock %}
+
+{# Define la sección de plantilla «content», que la vista base o hija completa. #}{% block content %}
+<div class="page-heading">
+{# Muestra este contenido únicamente cuando se cumple la condición «paquete_editando». #}    <div class="page-heading-copy"><h1 class="page-heading-title"><span class="page-heading-icon"><i class="fa-solid fa-box"></i></span>{% if paquete_editando %}Editar paquete{% else %}Registrar paquete{% endif %}</h1><p class="page-heading-description">Registra los paquetes recibidos en portería y su casa destinataria.</p></div>
+    <div class="page-heading-actions"><a href="{% url 'logout' %}" class="btn btn-outline-secondary"><i class="fa-solid fa-right-from-bracket me-2"></i>Cerrar sesión</a></div>
+</div>
+
+
+<div class="card panel form-panel">
+    <div class="card-body p-4 p-md-5">
+{# Esta estructura presenta el bloque de formulario de captura de la pantalla. #}        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="row">
+{# Genera una sección repetida para cada elemento de «field in form». #}                {% for field in form %}
+                <div class="col-md-6 mb-3">
+                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                    {{ field }}
+{# Genera una sección repetida para cada elemento de «error in field.errors». #}                    {% for error in field.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+{# Muestra este contenido únicamente cuando se cumple la condición «form.non_field_errors». #}            {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+            <button type="submit" class="btn btn-success"><i class="fa-solid fa-floppy-disk me-2"></i>Guardar paquete</button>
+{# Muestra este contenido únicamente cuando se cumple la condición «paquete_editando». #}            {% if paquete_editando %}<a href="{% url 'registrar_paquete' %}" class="btn btn-outline-secondary">Cancelar</a>{% endif %}
+        </form>
+    </div>
+</div>
+
+<div class="card panel mt-4">
+    <div class="card-body p-0">
+        <div class="p-4 border-bottom d-flex justify-content-between align-items-center">
+            <h2 class="h5 mb-0">Paquetes registrados</h2>
+            <span class="badge text-bg-secondary">{{ paquetes|length }} total</span>
+        </div>
+{# Esta estructura presenta el bloque de formulario de captura de la pantalla. #}        <form method="get" class="row g-3 p-4 border-bottom align-items-end">
+{# Genera una sección repetida para cada elemento de «casa in casas». #}{# Muestra este contenido únicamente cuando se cumple la condición «vivienda_filtro == casa.pk|stringformat:'s'». #}            <div class="col-md-6"><label for="filtro-vivienda-paquete" class="form-label">Filtrar por casa</label><select id="filtro-vivienda-paquete" name="vivienda" class="form-select"><option value="">Todas las casas</option>{% for casa in casas %}<option value="{{ casa.pk }}" {% if vivienda_filtro == casa.pk|stringformat:'s' %}selected{% endif %}>Casa {{ casa.numero_casa }}</option>{% endfor %}</select></div>
+            <div class="col-md-3"><button type="submit" class="btn btn-primary"><i class="fa-solid fa-filter me-2"></i>Filtrar</button><a href="{% url 'registrar_paquete' %}?registros=1" class="btn btn-outline-secondary ms-2">Limpiar</a></div>
+        </form>
+        <div class="table-responsive registros-scroll">
+{# Esta estructura presenta el bloque de tabla de resultados de la pantalla. #}            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light"><tr><th>Remitente</th><th>Transportadora</th><th>Guía</th><th>Destinatario</th><th>Llamada</th><th>Casa</th><th>Estado</th><th>Evidencia</th><th class="text-end">Acciones</th></tr></thead>
+                <tbody>
+{# Genera una sección repetida para cada elemento de «paquete in paquetes». #}                {% for paquete in paquetes %}
+{# Prepara el contexto local «proceso=paquete.paquete_procesos|first» para los elementos siguientes. #}                    {% with proceso=paquete.paquete_procesos|first %}
+                    <tr>
+                        <td>{{ paquete.nombre }} {{ paquete.apellido }}</td>
+                        <td>{{ paquete.transportadora }}</td>
+                        <td>{{ paquete.guia|default:'Sin guía' }}</td>
+{# Muestra este contenido únicamente cuando se cumple la condición «paquete.residente_secundario». #}                        <td>{% if paquete.residente_secundario %}{{ paquete.residente_secundario.nombre }} {{ paquete.residente_secundario.apellido }}<br><small class="text-muted">Tel: {{ paquete.residente_secundario.telefono|default:'Sin teléfono' }}</small>{% elif paquete.propietario_autorizador %}{{ paquete.propietario_autorizador.nombre }} {{ paquete.propietario_autorizador.apellido }}<br><small class="text-muted">Tel: {{ paquete.propietario_autorizador.telefono|default:'Sin teléfono' }}</small>{% else %}Sin seleccionar{% endif %}</td>
+{# Muestra este contenido únicamente cuando se cumple la condición «paquete.llamada == 'CONTESTO'». #}                        <td>{% if paquete.llamada == 'CONTESTO' %}<span class="badge text-bg-success">Sí contestó</span>{% else %}<span class="badge text-bg-secondary">No contestó</span>{% endif %}</td>
+{# Muestra este contenido únicamente cuando se cumple la condición «proceso». #}                        <td>{% if proceso %}Casa {{ proceso.id_casa.numero_casa }}{% else %}Sin casa{% endif %}</td>
+{# Muestra este contenido únicamente cuando se cumple la condición «proceso». #}                        <td>{% if proceso %}{% estado_ui 'paquete' proceso.estado as estado_visual %}<span class="badge" style="background-color: {{ estado_visual.color }}; color: {{ estado_visual.color_texto }};">{{ estado_visual.nombre }}</span>{% else %}Sin estado{% endif %}</td>
+{# Muestra este contenido únicamente cuando se cumple la condición «paquete.evidencia». #}                        <td>{% if paquete.evidencia %}<a href="{{ paquete.evidencia.url }}" target="_blank" rel="noopener">Ver archivo</a>{% else %}Sin evidencia{% endif %}</td>
+                        <td class="text-end text-nowrap">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#detallePaquete{{ paquete.id_paquete }}" title="Ver detalle"><i class="fa-solid fa-eye"></i><span class="visually-hidden">Ver detalle del paquete</span></button>
+                            <a href="{% url 'editar_paquete' paquete.id_paquete %}" class="btn btn-sm btn-outline-primary" title="Editar"><i class="fa-solid fa-pen-to-square"></i><span class="visually-hidden">Editar</span></a>
+{# Esta estructura presenta el bloque de formulario de captura de la pantalla. #}                            <form method="post" class="d-inline" onsubmit="return confirm('¿Eliminar este paquete?');">{% csrf_token %}<input type="hidden" name="action" value="delete"><input type="hidden" name="paquete_id" value="{{ paquete.id_paquete }}"><button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar"><i class="fa-solid fa-trash"></i><span class="visually-hidden">Eliminar</span></button></form>
+                        </td>
+                    </tr>
+                    <div class="modal fade" id="detallePaquete{{ paquete.id_paquete }}" tabindex="-1" aria-labelledby="detallePaqueteLabel{{ paquete.id_paquete }}" aria-hidden="true">
+                        <div class="modal-dialog modal-lg modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h2 class="modal-title fs-5" id="detallePaqueteLabel{{ paquete.id_paquete }}"><i class="fa-solid fa-box me-2"></i>Detalle del paquete</h2>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="row g-3">
+                                        <div class="col-md-6"><strong>Remitente:</strong><br>{{ paquete.nombre }} {{ paquete.apellido }}</div>
+                                        <div class="col-md-6"><strong>Transportadora:</strong><br>{{ paquete.transportadora }}</div>
+                                        <div class="col-md-6"><strong>Teléfono:</strong><br>{{ paquete.telefono_t|default:'Sin teléfono' }}</div>
+                                        <div class="col-md-6"><strong>Número de guía:</strong><br>{{ paquete.guia|default:'Sin guía' }}</div>
+                                        <div class="col-md-6"><strong>Tipo de paquete:</strong><br>{{ paquete.desc_tipo|default:'Sin descripción' }}</div>
+{# Muestra este contenido únicamente cuando se cumple la condición «proceso». #}                                        <div class="col-md-6"><strong>Casa:</strong><br>{% if proceso %}Casa {{ proceso.id_casa.numero_casa }}{% else %}Sin casa{% endif %}</div>
+{# Muestra este contenido únicamente cuando se cumple la condición «paquete.residente_secundario». #}                                        <div class="col-md-6"><strong>Destinatario:</strong><br>{% if paquete.residente_secundario %}{{ paquete.residente_secundario.nombre }} {{ paquete.residente_secundario.apellido }}{% elif paquete.propietario_autorizador %}{{ paquete.propietario_autorizador.nombre }} {{ paquete.propietario_autorizador.apellido }}{% else %}Sin seleccionar{% endif %}</div>
+{# Muestra este contenido únicamente cuando se cumple la condición «paquete.residente_secundario». #}                                        <div class="col-md-6"><strong>Teléfono de contacto:</strong><br>{% if paquete.residente_secundario %}{{ paquete.residente_secundario.telefono|default:'Sin teléfono' }}{% elif paquete.propietario_autorizador %}{{ paquete.propietario_autorizador.telefono|default:'Sin teléfono' }}{% else %}Sin teléfono{% endif %}</div>
+{# Muestra este contenido únicamente cuando se cumple la condición «paquete.llamada == 'CONTESTO'». #}                                        <div class="col-md-6"><strong>Llamada:</strong><br>{% if paquete.llamada == 'CONTESTO' %}Sí contestó{% else %}No contestó{% endif %}</div>
+{# Muestra este contenido únicamente cuando se cumple la condición «proceso». #}                                        <div class="col-md-6"><strong>Estado:</strong><br>{% if proceso %}{% estado_ui 'paquete' proceso.estado as estado_visual_detalle %}<span class="badge" style="background-color: {{ estado_visual_detalle.color }}; color: {{ estado_visual_detalle.color_texto }};">{{ estado_visual_detalle.nombre }}</span>{% else %}Sin estado{% endif %}</div>
+                                        <div class="col-12"><strong>Nota:</strong><br>{{ paquete.informacion_adicional|default:'Sin nota' }}</div>
+{# Muestra este contenido únicamente cuando se cumple la condición «paquete.evidencia». #}                                        {% if paquete.evidencia %}<div class="col-12"><strong>Evidencia:</strong><br><a href="{{ paquete.evidencia.url }}" target="_blank" rel="noopener"><img src="{{ paquete.evidencia.url }}" alt="Evidencia del paquete" class="img-fluid rounded mt-2" style="max-height: 320px; object-fit: contain;"></a></div>{% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endwith %}
+                {% empty %}
+                    <tr><td colspan="9" class="text-center text-muted py-4">No hay paquetes registrados.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{# Define la sección de plantilla «extra_js», que la vista base o hija completa. #}{% block extra_js %}
+{{ casas_residentes|json_script:"casas-residentes-paquete-data" }}
+<script>
+(() => {
+    const vivienda = document.querySelector('[name="vivienda"]');
+    const persona = document.querySelector('[name="persona_autorizante"]');
+    const llamada = document.querySelector('[name="llamada"]');
+    const adicional = document.querySelector('[name="informacion_adicional"]');
+    const casasResidentes = JSON.parse(document.getElementById('casas-residentes-paquete-data').textContent);
+    const actualizarPersonas = () => {
+        if (!vivienda || !persona) return;
+        const seleccionado = persona.value;
+        const personas = casasResidentes[vivienda.value] || [];
+        persona.innerHTML = '<option value="">Seleccione una persona</option>';
+        personas.forEach((item) => persona.add(new Option(`${item.nombre} - Tel: ${item.telefono}`, item.id)));
+        if (!personas.length && vivienda.value) persona.add(new Option('No hay residentes asociados a esta casa', ''));
+        if (personas.some((item) => String(item.id) === seleccionado)) persona.value = seleccionado;
+    };
+    const actualizarAdicional = () => {
+        const campo = adicional && adicional.closest('.mb-3');
+        const mostrar = llamada && llamada.value !== '';
+        if (campo) campo.hidden = !mostrar;
+        if (adicional) adicional.required = false;
+    };
+    if (vivienda) {
+        vivienda.addEventListener('change', actualizarPersonas);
+        actualizarPersonas();
+    }
+    if (llamada) {
+        llamada.addEventListener('change', actualizarAdicional);
+        actualizarAdicional();
+    }
+})();
+</script>
+{% endblock %}

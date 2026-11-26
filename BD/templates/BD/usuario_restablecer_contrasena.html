@@ -1,0 +1,198 @@
+{% extends "BD/basex.html" %}
+
+{% block title %}Restablecer contraseña | Piemonte{% endblock %}
+
+{% block extra_css %}
+<style>
+    .admin-password-page { width: min(100%, 790px); margin: 0 auto; }
+    .admin-password-page .page-heading { position: relative; top: auto; min-height: 64px; margin-bottom: 1rem; padding: .7rem 1.15rem; }
+    .admin-password-page .page-heading-copy::before { margin-left: 3.2rem; }
+    .admin-password-page .page-heading-icon { width: 40px; height: 40px; flex-basis: 40px; }
+    .admin-password-page .page-heading-title { font-size: 1.12rem; }
+    .admin-password-page .page-heading-description { margin-top: .2rem; font-size: .82rem; }
+    .admin-password-page .form-panel .card-body { padding: 1.35rem 1.55rem !important; }
+    .admin-password-page .account-summary { display: flex; align-items: center; gap: .75rem; margin-bottom: 1.1rem; padding: .75rem .9rem; background: #f2f8f6; border: 1px solid #e0ece8; border-radius: 12px; }
+    .admin-password-page .account-avatar { display: grid; width: 40px; height: 40px; flex: 0 0 40px; place-items: center; color: #17614f; background: #dff3ec; border-radius: 11px; font-size: 1rem; }
+    .admin-password-page .account-name { margin: 0; color: #243d38; font-size: .95rem; font-weight: 800; }
+    .admin-password-page .account-username { margin: .12rem 0 0; color: #6b7c78; font-size: .78rem; }
+    .admin-password-page .reset-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .9rem 1rem; }
+    .admin-password-page .reset-form > .full-width { grid-column: 1 / -1; }
+    .admin-password-page .reset-form .form-label { margin-bottom: .35rem; font-size: .76rem; }
+    .admin-password-page .password-input-wrap { position: relative; }
+    .admin-password-page .password-input-wrap .form-control { min-height: 41px; padding-right: 2.8rem; font-size: .88rem; }
+    .admin-password-page .password-visibility { position: absolute; top: 50%; right: .45rem; display: grid; width: 32px; height: 32px; place-items: center; color: #60736e; background: transparent; border: 0; border-radius: 8px; transform: translateY(-50%); transition: color .18s, background-color .18s; }
+    .admin-password-page .password-visibility:hover, .admin-password-page .password-visibility:focus-visible { color: #17614f; background: #e4f2ed; outline: none; }
+    .admin-password-page .password-guidance { padding: .8rem .9rem; background: #f8fbfa; border: 1px solid #e2ece9; border-radius: 11px; }
+    .admin-password-page .guidance-title { display: flex; align-items: center; gap: .45rem; margin: 0 0 .55rem; color: #29423e; font-size: .78rem; font-weight: 800; }
+    .admin-password-page .password-rules { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .4rem .8rem; margin: 0; padding: 0; list-style: none; }
+    .admin-password-page .password-rules li { display: flex; align-items: center; gap: .4rem; color: #74837f; font-size: .72rem; line-height: 1.35; transition: color .18s; }
+    .admin-password-page .password-rules i { color: #a3b0ac; font-size: .8rem; transition: color .18s, transform .18s; }
+    .admin-password-page .password-rules li.is-met { color: #167451; font-weight: 700; }
+    .admin-password-page .password-rules li.is-met i { color: #16866f; transform: scale(1.08); }
+    .admin-password-page .password-match { min-height: 1.05rem; margin: .3rem 0 0; color: #687b77; font-size: .72rem; }
+    .admin-password-page .password-match.is-match { color: #167451; }
+    .admin-password-page .password-match.is-mismatch { color: #b42318; }
+    .admin-password-page .reset-actions { display: flex; flex-wrap: wrap; gap: .55rem; padding-top: .1rem; }
+    .admin-password-page .reset-actions .btn { min-height: 39px; padding: .55rem .9rem; font-size: .84rem; }
+    .admin-password-page .reset-actions .btn-success { display: inline-flex; align-items: center; justify-content: center; gap: .4rem; }
+    @media (max-width: 767.98px) {
+        .admin-password-page .page-heading { align-items: center; flex-direction: row; }
+        .admin-password-page .page-heading-copy::before { margin-left: 0; }
+        .admin-password-page .page-heading-actions { width: auto; }
+        .admin-password-page .page-heading-actions .btn { width: auto; font-size: .78rem; }
+        .admin-password-page .form-panel .card-body { padding: 1rem !important; }
+        .admin-password-page .password-rules { grid-template-columns: 1fr; gap: .35rem; }
+    }
+    @media (max-width: 480px) {
+        .admin-password-page .page-heading { align-items: flex-start; flex-direction: column; }
+        .admin-password-page .page-heading-actions, .admin-password-page .page-heading-actions .btn { width: 100%; }
+        .admin-password-page .reset-form { grid-template-columns: 1fr; gap: .75rem; }
+        .admin-password-page .reset-form > .full-width { grid-column: 1; }
+        .admin-password-page .reset-actions > .btn { flex: 1 1 100%; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="admin-password-page">
+    <div class="page-heading">
+        <div class="page-heading-copy">
+            <h1 class="page-heading-title">
+                <span class="page-heading-icon"><i class="fa-solid fa-key"></i></span>
+                Restablecer contraseña
+            </h1>
+            <p class="page-heading-description">Confirma tu identidad y crea una contraseña segura.</p>
+        </div>
+        <div class="page-heading-actions">
+            <a href="{% url 'usuarios' %}?registros=1" class="btn btn-outline-secondary btn-sm">
+                <i class="fa-solid fa-arrow-left me-1" aria-hidden="true"></i>Volver
+            </a>
+        </div>
+    </div>
+
+    <section class="card form-panel" aria-labelledby="reset-account-name">
+        <div class="card-body">
+            <div class="account-summary">
+                <span class="account-avatar" aria-hidden="true"><i class="fa-solid fa-user-shield"></i></span>
+                <div>
+                    <h2 class="account-name" id="reset-account-name">{{ usuario_objetivo.get_full_name|default:usuario_objetivo.username }}</h2>
+                    <p class="account-username">Cuenta: {{ usuario_objetivo.username }}</p>
+                </div>
+            </div>
+
+            <form method="post" class="reset-form">
+                {% csrf_token %}
+                {% if form.non_field_errors %}
+                    <div class="full-width alert alert-danger mb-0">{{ form.non_field_errors }}</div>
+                {% endif %}
+
+                <div class="full-width">
+                    <label for="{{ form.admin_password.id_for_label }}" class="form-label">{{ form.admin_password.label }}</label>
+                    <div class="password-input-wrap">
+                        {{ form.admin_password }}
+                        <button class="password-visibility" type="button" data-toggle-password="{{ form.admin_password.id_for_label }}" aria-label="Mostrar contraseña actual del administrador" aria-pressed="false">
+                            <i class="fa-regular fa-eye" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                    {% for error in form.admin_password.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                </div>
+
+                <div>
+                    <label for="{{ form.new_password1.id_for_label }}" class="form-label">{{ form.new_password1.label }}</label>
+                    <div class="password-input-wrap">
+                        {{ form.new_password1 }}
+                        <button class="password-visibility" type="button" data-toggle-password="{{ form.new_password1.id_for_label }}" aria-label="Mostrar nueva contraseña" aria-pressed="false">
+                            <i class="fa-regular fa-eye" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                    {% for error in form.new_password1.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                </div>
+
+                <div>
+                    <label for="{{ form.new_password2.id_for_label }}" class="form-label">{{ form.new_password2.label }}</label>
+                    <div class="password-input-wrap">
+                        {{ form.new_password2 }}
+                        <button class="password-visibility" type="button" data-toggle-password="{{ form.new_password2.id_for_label }}" aria-label="Mostrar confirmación de contraseña" aria-pressed="false">
+                            <i class="fa-regular fa-eye" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                    <p class="password-match" id="password-match" aria-live="polite"></p>
+                    {% for error in form.new_password2.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                </div>
+
+                <section class="full-width password-guidance" aria-labelledby="password-guidance-title">
+                    <h3 class="guidance-title" id="password-guidance-title">
+                        <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+                        Tu contraseña debe cumplir estas 3 reglas
+                    </h3>
+                    <ul class="password-rules" id="password-rules" aria-live="polite">
+                        <li data-rule="length"><i class="fa-regular fa-circle" aria-hidden="true"></i><span>Al menos 8 caracteres</span></li>
+                        <li data-rule="uppercase"><i class="fa-regular fa-circle" aria-hidden="true"></i><span>Una letra mayúscula</span></li>
+                        <li data-rule="special"><i class="fa-regular fa-circle" aria-hidden="true"></i><span>Un carácter especial</span></li>
+                    </ul>
+                </section>
+
+                <div class="full-width reset-actions">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>Guardar contraseña
+                    </button>
+                    <a href="{% url 'usuarios' %}?registros=1" class="btn btn-outline-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </section>
+</main>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(() => {
+    const form = document.querySelector('.admin-password-page .reset-form');
+    if (!form) return;
+
+    const newPassword = document.getElementById('{{ form.new_password1.id_for_label }}');
+    const confirmPassword = document.getElementById('{{ form.new_password2.id_for_label }}');
+    const matchMessage = document.getElementById('password-match');
+
+    form.querySelectorAll('[data-toggle-password]').forEach((button) => {
+        button.addEventListener('click', () => {
+            const input = document.getElementById(button.dataset.togglePassword);
+            if (!input) return;
+            const showing = input.type === 'password';
+            input.type = showing ? 'text' : 'password';
+            button.setAttribute('aria-pressed', String(showing));
+            button.setAttribute('aria-label', `${showing ? 'Ocultar' : 'Mostrar'} ${input.id === '{{ form.admin_password.id_for_label }}' ? 'contraseña actual del administrador' : input.id === '{{ form.new_password2.id_for_label }}' ? 'confirmación de contraseña' : 'nueva contraseña'}`);
+            button.querySelector('i').className = showing ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye';
+        });
+    });
+
+    const updatePasswordGuidance = () => {
+        const password = newPassword.value;
+        const requirements = {
+            length: password.length >= 8,
+            uppercase: /[A-Z]/.test(password),
+            special: /[^A-Za-z0-9]/.test(password),
+        };
+        Object.entries(requirements).forEach(([rule, met]) => {
+            const item = form.querySelector(`[data-rule="${rule}"]`);
+            item.classList.toggle('is-met', met);
+            item.querySelector('i').className = met ? 'fa-solid fa-circle-check' : 'fa-regular fa-circle';
+        });
+
+        matchMessage.classList.remove('is-match', 'is-mismatch');
+        if (!confirmPassword.value) {
+            matchMessage.textContent = '';
+        } else if (password === confirmPassword.value) {
+            matchMessage.textContent = 'Las contraseñas coinciden.';
+            matchMessage.classList.add('is-match');
+        } else {
+            matchMessage.textContent = 'Las contraseñas no coinciden todavía.';
+            matchMessage.classList.add('is-mismatch');
+        }
+    };
+
+    newPassword.addEventListener('input', updatePasswordGuidance);
+    confirmPassword.addEventListener('input', updatePasswordGuidance);
+})();
+</script>
+{% endblock %}
