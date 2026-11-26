@@ -69,6 +69,11 @@ if PUBLIC_HOSTNAME:
     ALLOWED_HOSTS.append(PUBLIC_HOSTNAME)
     CSRF_TRUSTED_ORIGINS.append(f'https://{PUBLIC_HOSTNAME}')
 
+railway_public_hostname = os.environ.get('RAILWAY_PUBLIC_DOMAIN', '').strip()
+if railway_public_hostname:
+    ALLOWED_HOSTS.append(railway_public_hostname)
+    CSRF_TRUSTED_ORIGINS.append(f'https://{railway_public_hostname}')
+
 extra_allowed_hosts = os.environ.get('PIEMONTE_ALLOWED_HOSTS', '').strip()
 if extra_allowed_hosts:
     ALLOWED_HOSTS.extend(
@@ -236,11 +241,11 @@ STORAGES = {
     },
 }
 #host dominios aceptar
-CSRF_TRUSTED_ORIGINS = [
+CSRF_TRUSTED_ORIGINS.extend(
     origin.strip()
     for origin in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
     if origin.strip()
-]
+)
 #administra protocolos
 SECURE_PROXY_SSL_HEADER = (
     'HTTP_X_FORWARDED_PROTO',
