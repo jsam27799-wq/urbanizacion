@@ -143,10 +143,36 @@ class ManualRolesViewTests(TestCase):
                 self.assertEqual(response.status_code, 200)
                 expected_title = f'Manual de {expected_role}'
                 self.assertContains(response, f'<h2>{expected_title}</h2>')
+                self.assertContains(response, '<small>Finaliza la sesión actual.</small>')
                 for module in visible_modules:
                     self.assertContains(response, f'data-manual-module="{module}"')
                 for module in hidden_modules:
                     self.assertNotContains(response, f'data-manual-module="{module}"')
+                if expected_role == 'guardia':
+                    self.assertContains(response, 'core/images/manual-operativo/08-dashboard-guardia.')
+                    for screenshot in (
+                        '04-menu-sesion',
+                        '05-perfil',
+                        '06-perfil-confirmacion',
+                        '07-dashboard-admin',
+                        '09-movimientos-recientes',
+                    ):
+                        self.assertNotContains(
+                            response,
+                            f'core/images/manual-operativo/{screenshot}.',
+                        )
+                elif expected_role == 'propietario':
+                    self.assertContains(response, 'core/images/manual-operativo/04-menu-cuenta-propietario.')
+                    for screenshot in (
+                        '04-menu-sesion',
+                        '05-perfil',
+                        '06-perfil-confirmacion',
+                        '07-dashboard-admin',
+                    ):
+                        self.assertNotContains(
+                            response,
+                            f'core/images/manual-operativo/{screenshot}.',
+                        )
 
                 home_response = self.client.get('/')
                 self.assertContains(home_response, reverse('manual_roles'))

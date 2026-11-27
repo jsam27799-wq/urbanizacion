@@ -41,6 +41,44 @@ _PROFILE = _chapter(
     ],
 )
 
+_GUARD_PROFILE = _chapter(
+    "perfil",
+    "Menú de cuenta y perfil",
+    "Desde el menú de Guardia puedes revisar tus datos, actualizar la contraseña o cerrar la sesión.",
+    [
+        ("Abrir el menú", "Selecciona el botón con tu usuario en la parte superior del panel y elige Perfil."),
+        ("Guardar datos personales", "Actualiza los campos de contacto disponibles y usa Guardar cambios. Revisa el aviso de resultado antes de salir."),
+        ("Cambiar contraseña", "Completa la sección de contraseña con la clave actual y la nueva contraseña; guarda el cambio y vuelve a iniciar sesión si la página lo solicita."),
+    ],
+    figures=[
+        _figure("08-dashboard-guardia.png", "Panel con el menú y la cuenta de Guardia", "La captura corresponde a la vista de Guardia; el botón de usuario abre el acceso al perfil.", ["A · Usuario de Guardia", "B · Menú operativo permitido"]),
+    ],
+    actions=[
+        ("Guardar cambios", "Aplica los datos personales editados."),
+        ("Actualizar contraseña", "Cambia la clave de acceso; no crea ni elimina la cuenta."),
+        ("Cerrar sesión", "Finaliza la sesión actual."),
+    ],
+)
+
+_OWNER_PROFILE = _chapter(
+    "perfil",
+    "Cuenta y perfil del propietario",
+    "La navegación interna del Propietario muestra únicamente Pagos. Desde el botón de cuenta puedes abrir Perfil o cerrar sesión.",
+    [
+        ("Abrir el menú", "Selecciona el botón de cuenta en la parte superior y elige Perfil. El menú lateral de este rol se limita a Pagos."),
+        ("Guardar datos personales", "Actualiza los campos de contacto disponibles y usa Guardar cambios. Revisa el aviso de resultado antes de salir."),
+        ("Cambiar contraseña", "Completa la sección de contraseña con la clave actual y la nueva contraseña; guarda el cambio y vuelve a iniciar sesión si la página lo solicita."),
+    ],
+    figures=[
+        _figure("04-menu-cuenta-propietario.png", "Opciones de cuenta del propietario", "Accesos a Perfil y Cerrar sesión; la captura no incluye navegación administrativa.", ["A · Perfil", "B · Cerrar sesión"]),
+    ],
+    actions=[
+        ("Guardar cambios", "Aplica los datos personales editados."),
+        ("Actualizar contraseña", "Cambia la clave de acceso; no crea ni elimina la cuenta."),
+        ("Cerrar sesión", "Finaliza la sesión actual."),
+    ],
+)
+
 
 _ADMIN_DASHBOARD = _chapter(
     "dashboard",
@@ -74,7 +112,6 @@ _GUARD_DASHBOARD = _chapter(
     ],
     figures=[
         _figure("08-dashboard-guardia.png", "Dashboard de Guardia", "Indicadores operativos y menú disponible para Guardia.", ["A · Indicadores del turno", "B · Módulos operativos"]),
-        _figure("09-movimientos-recientes.png", "Tabla de movimientos recientes", "Acceso de lectura a la actividad y a sus detalles.", ["A · Fecha y estado", "B · Registro y casa", "C · Ver detalle"]),
     ],
     table="La tabla de movimientos presenta los eventos que la cuenta puede consultar. Todos los movimientos permite filtrar por fechas, casa o módulo; desde allí se revisan detalles, no se modifica el registro original.",
     actions=[
@@ -487,7 +524,7 @@ MANUAL_MODULES = {
         _ADMIN_SETTINGS,
     ),
     "guardia": (
-        _PROFILE,
+        _GUARD_PROFILE,
         _GUARD_DASHBOARD,
         _GUARD_VISITORS,
         _GUARD_DELIVERIES,
@@ -495,7 +532,7 @@ MANUAL_MODULES = {
         _GUARD_NOTES,
     ),
     "propietario": (
-        _PROFILE,
+        _OWNER_PROFILE,
         _OWNER_PAYMENTS,
         _OWNER_COMMUNITY,
     ),
