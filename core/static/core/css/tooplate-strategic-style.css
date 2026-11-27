@@ -14,7 +14,15 @@ https://www.tooplate.com/view/2149-strategic-consulting
 	box-sizing: border-box;
 }
 
+html {
+	width: 100%;
+	max-width: 100%;
+	overflow-x: clip;
+}
+
 body {
+	width: 100%;
+	max-width: 100%;
 	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 	line-height: 1.6;
 	color: #1a202c;
@@ -2557,6 +2565,27 @@ body {
 		display: flex;
 	}
 
+	.login-navbar .nav-links {
+		display: flex;
+		position: static;
+		flex: 0 0 auto;
+		transform: none;
+		margin-left: auto;
+		gap: 0.3rem;
+		padding: 0;
+		background: transparent;
+		box-shadow: none;
+		border-radius: 0;
+	}
+
+	.login-navbar .nav-links a {
+		width: auto;
+		padding: 0.55rem 0.25rem;
+		font-size: 0.72rem;
+		letter-spacing: 0.02em;
+		white-space: nowrap;
+	}
+
 	.mobile-menu {
 		display: flex;
 	}
@@ -2633,7 +2662,7 @@ body {
 	}
 
 	.news-gallery {
-		grid-template-columns: repeat(2, minmax(0, 1fr));
+		grid-template-columns: minmax(0, 1fr);
 		gap: 1.2rem;
 	}
 
@@ -3107,6 +3136,12 @@ body {
 	background: linear-gradient(145deg, #fff, #edf7f4);
 	box-shadow: 0 8px 24px rgba(15, 23, 42, .16), 0 0 0 4px rgba(255, 255, 255, .38);
 	transition: transform .2s ease, background .2s ease, box-shadow .2s ease;
+}
+
+.menu-btn svg {
+	display: block;
+	width: 22px;
+	height: 22px;
 }
 
 .menu-btn:hover,
@@ -3654,15 +3689,16 @@ body {
 	}
 
 	.hero {
-		height: min(78svh, 44rem);
-		min-height: 32rem;
+		height: min(60svh, 32rem);
+		min-height: 22rem;
 		background-attachment: scroll;
 		background-position: center;
 	}
 
 	.menu-access {
 		top: 15px;
-		right: 12px;
+		right: 100%;
+		z-index: 1001;
 	}
 
 	.menu-btn {
@@ -3671,9 +3707,9 @@ body {
 	}
 
 	.hero-content {
-		width: 100%;
-		max-width: 42rem;
-		padding: 0 1.25rem;
+		width: min(100%, 36rem);
+		max-width: 36rem;
+		padding: 0 1rem;
 		margin: 0;
 	}
 
@@ -3683,15 +3719,19 @@ body {
 
 	.hero h1 {
 		margin-bottom: 1.1rem;
-		font-size: clamp(2rem, 8.5vw, 3.1rem);
+		max-width: 24ch;
+		margin-right: auto;
+		margin-left: auto;
+		font-size: clamp(1.8rem, 7.4vw, 2.7rem);
 		line-height: 1.08;
 		letter-spacing: -0.045em;
 		overflow-wrap: anywhere;
+		text-wrap: balance;
 	}
 
 	.hero p {
 		margin-bottom: 1.6rem;
-		font-size: clamp(1rem, 4.2vw, 1.25rem);
+		font-size: clamp(0.95rem, 3.8vw, 1.1rem);
 		line-height: 1.5;
 	}
 
@@ -3716,7 +3756,7 @@ body {
 	.section {
 		width: 100%;
 		max-width: 100%;
-		padding: 3.75rem 1.1rem;
+		padding: 3rem 0.9rem;
 	}
 
 	.section-title {
@@ -3727,8 +3767,8 @@ body {
 	}
 
 	.services {
-		padding-top: 3.25rem;
-		padding-bottom: 3.25rem;
+		padding-top: 2.5rem;
+		padding-bottom: 2.5rem;
 	}
 
 	.services .section-title,
@@ -3753,7 +3793,6 @@ body {
 		min-height: 20rem;
 		padding: 1.2rem;
 		border-radius: 18px;
-		margin-bottom: 10rem;
 	}
 
 	.service-details h3 {
@@ -3855,7 +3894,7 @@ body {
 	}
 
 	.news-gallery {
-		grid-template-columns: repeat(2, minmax(0, 1fr));
+		grid-template-columns: minmax(0, 1fr);
 		width: 100%;
 		min-width: 0;
 		gap: 0.75rem;
@@ -3888,7 +3927,7 @@ body {
 	}
 
 	.testimonials-container {
-		grid-template-columns: repeat(2, minmax(0, 1fr));
+		grid-template-columns: minmax(0, 1fr);
 		gap: 0.7rem;
 		margin-top: 1rem;
 	}
@@ -4081,6 +4120,12 @@ body {
 	}
 }
 
+@media (max-width: 480px) {
+	.services-tabs {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+
 @media (max-width: 380px) {
 	.nav-container {
 		padding-right: 0.75rem;
@@ -4161,7 +4206,6 @@ body {
 .sena-footer-logo {
   width: 50px;
   height: 50px;
-  top: 0px;
-  margin-right: 800px;
-  
+  display: block;
+  margin: 0 auto;
 }
