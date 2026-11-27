@@ -3568,6 +3568,32 @@ body {
 	.profile-dialog__body {
 		padding: 1rem;
 	}
+
+	.menu-access {
+		right: max(8px, env(safe-area-inset-right));
+	}
+
+	.side-menu--user {
+		width: min(286px, calc(100vw - 1rem));
+		max-width: calc(100vw - 1rem);
+	}
+
+	.account-welcome {
+		width: 100%;
+		min-width: 0;
+		align-items: flex-start;
+	}
+
+	.account-welcome__copy {
+		flex: 1 1 0;
+	}
+
+	.account-welcome__copy strong {
+		display: block;
+		max-width: 100%;
+		white-space: normal;
+		overflow-wrap: anywhere;
+	}
 }
 
 /* Apariencia común de tablas de residentes, encabezados y celdas. */

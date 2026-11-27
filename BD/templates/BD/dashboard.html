@@ -33,6 +33,22 @@
             font-size: 18px;
             margin-left: 15px;
         }
+        .page-heading-actions .dashboard-profile-toggle {
+            color: #173f3a;
+            background: #fff;
+            border: 1px solid #d7e8e2;
+            white-space: normal;
+        }
+        .page-heading-actions .dashboard-profile-toggle:hover,
+        .page-heading-actions .dashboard-profile-toggle:focus-visible {
+            color: #123b36;
+            background: #f4faf7;
+            border-color: #a9d8c8;
+        }
+        .dashboard-profile-toggle span {
+            min-width: 0;
+            overflow-wrap: anywhere;
+        }
         .movimientos-table { font-size: .78rem; }
         .movimientos-table th, .movimientos-table td { padding: .45rem .5rem; }
         .movimientos-table th { white-space: nowrap; }
@@ -40,6 +56,11 @@
         .movimientos-table .badge { font-size: .7rem; white-space: normal; }
         .movimientos-table .fecha-movimiento { white-space: nowrap; }
         @media (max-width: 767.98px) {
+            .main-content .dashboard-page-heading { align-items: stretch; flex-direction: column; gap: .55rem; }
+            .main-content .dashboard-page-heading .page-heading-actions { width: 100%; }
+            .main-content .dashboard-page-heading .dashboard-profile-toggle { width: 100%; min-width: 0; justify-content: flex-start; }
+            .dashboard-profile-toggle span { flex: 1 1 auto; text-align: left; }
+            .dashboard-profile-menu { width: 100%; }
             .dashboard-stats > [class*="col-"] { width: 50%; }
             .dashboard-stats .card-stat { height: 100%; min-height: 70px; padding: .65rem !important; }
             .dashboard-stats .card-stat .small { font-size: .64rem; line-height: 1.25; }
@@ -83,13 +104,13 @@
         }
         @media (max-width: 576px) {
             .main-content:has(.dashboard-stats) { padding: 3.6rem .5rem .75rem; }
-            .main-content:has(.dashboard-stats) .page-heading { flex-direction: row; align-items: center; gap: .4rem; margin-bottom: .65rem; padding: .65rem .7rem .65rem .85rem; }
+            .main-content:has(.dashboard-stats) .page-heading { flex-direction: column; align-items: stretch; gap: .55rem; margin-bottom: .65rem; padding: .65rem .7rem .65rem .85rem; }
             .main-content:has(.dashboard-stats) .page-heading-copy::before { margin: 0 0 .2rem; font-size: .5rem; }
             .main-content:has(.dashboard-stats) .page-heading-title { align-items: center; gap: .4rem; font-size: .95rem; }
             .main-content:has(.dashboard-stats) .page-heading-icon { width: 32px; height: 32px; flex-basis: 32px; font-size: .9rem; }
             .main-content:has(.dashboard-stats) .page-heading-description { margin: .2rem 0 0; font-size: .68rem; line-height: 1.3; }
-            .main-content:has(.dashboard-stats) .page-heading-actions { width: auto; flex: 0 0 auto; }
-            .main-content:has(.dashboard-stats) .page-heading-actions .btn { width: auto; padding: .35rem; font-size: 0; }
+            .main-content:has(.dashboard-stats) .page-heading-actions { width: 100%; flex: 0 0 auto; }
+            .main-content:has(.dashboard-stats) .page-heading-actions .btn { width: 100%; min-height: 40px; padding: .4rem .65rem; font-size: .78rem; justify-content: flex-start; }
             .main-content:has(.dashboard-stats) .page-heading-actions .btn i { font-size: .95rem; }
             .dashboard-stats { gap: .4rem .15rem !important; margin-bottom: .65rem !important; }
             .dashboard-stats > [class*="col-"] { width: calc(50% - .2rem); padding-right: .2rem; padding-left: .2rem; }
@@ -112,14 +133,14 @@
 
 {# Define la sección de plantilla «content», que la vista base o hija completa. #}{% block content %}
         <!-- HEADER TOP -->
-{# Esta estructura presenta el bloque de encabezado de la pantalla. #}        <header class="page-heading">
+{# Esta estructura presenta el bloque de encabezado de la pantalla. #}        <header class="page-heading dashboard-page-heading">
             <div class="page-heading-copy"><h1 class="page-heading-title"><span class="page-heading-icon"><i class="fa-solid fa-chart-line"></i></span>Bienvenido {{user}}</h1><p class="page-heading-description">Urbanización Piemonte - Gestión de accesos y pagos.</p></div>
             <div class="page-heading-actions dropdown">
-                <button class="btn btn-white shadow-sm dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown">
+        <button class="btn btn-white shadow-sm dropdown-toggle d-flex align-items-center gap-2 dashboard-profile-toggle" type="button" data-bs-toggle="dropdown" aria-label="Abrir menú de perfil de {{ user }}">
                     <i class="fa-solid fa-circle-user fa-lg text-secondary"></i>
                     <span>Bienvenido {{user}}</span>
                 </button>
-                <ul class="dropdown-menu dropdown-menu-end">
+        <ul class="dropdown-menu dropdown-menu-end dashboard-profile-menu">
                     <li><a class="dropdown-item" href="{% url 'perfil' %}"><i class="fa-solid fa-user me-2"></i>Perfil</a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li><a class="dropdown-item text-danger" href="{% url 'logout' %}"><i class="fa-solid fa-right-from-bracket me-2"></i>Cerrar Sesión</a></li>

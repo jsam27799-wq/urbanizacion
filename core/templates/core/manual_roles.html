@@ -1,22 +1,22 @@
 {% extends "BD/basex.html" %}
 {% load static %}
 
-{% block title %}Manual de mi rol | Piemonte{% endblock %}
+{% block title %}{{ manual_titulo|capfirst }} | Piemonte{% endblock %}
 
 {% block content %}
 <div class="manual-guide role-manual">
     <header class="manual-guide__hero">
         <div class="manual-guide__hero-copy">
             <span class="manual-guide__eyebrow">Guía de uso · Piemonte</span>
-            <h2>Manual de uso por rol</h2>
+            <h2>{{ manual_titulo|capfirst }}</h2>
             {% if manual_es_administrador %}
-            <p>Consulta las guías de Administrador, Guardia y Propietario desde una sola página.</p>
+            <p>Como Administrador, puedes consultar todas las guías y módulos de la plataforma.</p>
             {% elif manual_roles.0 == "guardia" %}
-            <p>Esta guía te acompaña en las tareas disponibles para tu cuenta de Guardia.</p>
+            <p>Instrucciones paso a paso para las tareas disponibles en tu cuenta de Guardia.</p>
             {% else %}
-            <p>Esta guía te acompaña en las opciones disponibles para tu cuenta de Propietario.</p>
+            <p>Instrucciones para consultar tu cuenta y usar los servicios disponibles para Propietarios.</p>
             {% endif %}
-            <span class="manual-guide__status"><span></span>Contenido según tus permisos</span>
+            <span class="manual-guide__status"><span></span>{% if manual_es_administrador %}Acceso a todas las guías{% else %}Guía según tu rol{% endif %}</span>
         </div>
         <div class="manual-guide__art" aria-hidden="true">
             <span class="manual-guide__art-orbit"></span>
@@ -37,77 +37,81 @@
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>
         </span>
         <div>
-            <h3>Una guía basada en las pantallas reales</h3>
-            <p>Las capturas muestran la plataforma después de iniciar sesión. Las opciones visibles cambian según el rol asignado a cada cuenta.</p>
+            <h3>Cómo usar esta guía</h3>
+            <p>Cada módulo explica el flujo, las tablas y las acciones disponibles para tu rol. Las referencias A, B y C bajo cada captura identifican las áreas importantes de esa pantalla. Los controles que no aparecen en tu cuenta no están disponibles para tu rol.</p>
         </div>
     </div>
 
+    <div class="manual-role-links">
+        <a href="{% url 'manual_usuario' %}"><i class="fa-solid fa-house-user" aria-hidden="true"></i> Ver guía de la página pública</a>
+    </div>
+
     <nav class="role-manual__navigation" aria-label="Secciones de este manual">
-        {% for role in manual_roles %}
-        <a href="#manual-rol-{{ role }}">
-            {% if role == "administrador" %}Administrador{% elif role == "guardia" %}Guardia{% else %}Propietario{% endif %}
-            <span aria-hidden="true">↓</span>
-        </a>
+        {% for module in manual_capitulos %}
+        <a href="#manual-mod-{{ module.id }}">{{ module.title }} <span aria-hidden="true">↓</span></a>
         {% endfor %}
     </nav>
 
     <div class="role-manual__chapters">
-        {% for role in manual_roles %}
-        <article class="manual-chapter role-manual__chapter" id="manual-rol-{{ role }}" data-role-manual="{{ role }}">
+        {% for module in manual_capitulos %}
+        <article class="manual-chapter role-manual__chapter" id="manual-mod-{{ module.id }}" data-manual-module="{{ module.id }}">
             <header class="manual-chapter__header">
                 <span class="manual-chapter__number">{{ forloop.counter|stringformat:"02d" }}</span>
                 <div class="manual-chapter__heading">
-                    <span class="manual-chapter__eyebrow">Guía de tu panel</span>
-                    {% if role == "administrador" %}
-                    <h3>Administrador</h3>
-                    <p>Organiza y supervisa la gestión general de la urbanización.</p>
-                    {% elif role == "guardia" %}
-                    <h3>Guardia</h3>
-                    <p>Registra y consulta los movimientos cotidianos de acceso.</p>
-                    {% else %}
-                    <h3>Propietario</h3>
-                    <p>Consulta el estado de cuenta y gestiona los pagos de tu casa.</p>
-                    {% endif %}
+                    <span class="manual-chapter__eyebrow">Módulo</span>
+                    <h3>{{ module.title }}</h3>
+                    <p>{{ module.summary }}</p>
                 </div>
-                <span class="manual-chapter__state"><span></span>Disponible</span>
+                <span class="manual-chapter__state">Guía paso a paso</span>
             </header>
+
             <div class="manual-chapter__layout">
-                <figure class="manual-chapter__capture">
-                    <div class="manual-chapter__browser-bar" aria-hidden="true">
-                        <span class="manual-chapter__browser-dots"><i></i><i></i><i></i></span>
-                        <span>Piemonte · Panel interno</span>
-                    </div>
-                    {% if role == "administrador" %}
-                    <img class="manual-chapter__image" src="{% static 'core/images/manual-roles/01-administrador.jpg' %}" alt="Dashboard posterior al inicio de sesión de Administrador, con menú de gestión completo">
-                    <figcaption>Inicio y menú de gestión para Administrador.</figcaption>
-                    {% elif role == "guardia" %}
-                    <img class="manual-chapter__image" src="{% static 'core/images/manual-roles/02-guardia.jpg' %}" alt="Dashboard posterior al inicio de sesión de Guardia, con sus opciones de registro">
-                    <figcaption>Panel compartido con las opciones autorizadas para Guardia.</figcaption>
-                    {% else %}
-                    <img class="manual-chapter__image" src="{% static 'core/images/manual-roles/03-propietario.jpg' %}" alt="Página de pagos disponible para Propietario">
-                    <figcaption>Consulta de pagos de la casa vinculada al Propietario.</figcaption>
-                    {% endif %}
-                </figure>
+                <div class="manual-module__figures">
+                    {% for figure in module.figures %}
+                    <figure class="manual-chapter__capture">
+                        <div class="manual-chapter__browser-bar" aria-hidden="true">
+                            <span class="manual-chapter__browser-dots"><i></i><i></i><i></i></span>
+                            <span>Piemonte · {{ module.title }}</span>
+                        </div>
+                        <img class="manual-chapter__image" src="{% static figure.src %}" alt="{{ figure.alt }}" loading="lazy">
+                        <figcaption>{{ figure.caption }}</figcaption>
+                        <ul class="manual-module__labels" aria-label="Referencias de la captura">
+                            {% for label in figure.labels %}
+                            <li><span class="manual-module__label-mark">{{ label|slice:":1" }}</span><span>{{ label|slice:"4:" }}</span></li>
+                            {% endfor %}
+                        </ul>
+                    </figure>
+                    {% endfor %}
+                </div>
+
                 <div class="manual-chapter__explanation">
-                    <h4>Cómo usar este panel</h4>
-                    {% if role == "administrador" %}
+                    <h4>Cómo funciona</h4>
                     <ol>
-                        <li><span>01</span><div><strong>Usa el menú lateral</strong><small>Abre las secciones de casas, propietarios y residentes, visitantes, domiciliarios, paquetes, notas, pagos, usuarios, reseñas, novedades, reportes, configuración y copias.</small></div></li>
-                        <li><span>02</span><div><strong>Revisa el Dashboard</strong><small>Consulta los indicadores y la actividad reciente antes de gestionar registros.</small></div></li>
-                        <li><span>03</span><div><strong>Respalda la información</strong><small>Usa Copias de Seguridad y consulta el Manual técnico para el mantenimiento.</small></div></li>
+                        {% for step in module.steps %}
+                        <li><span>{{ forloop.counter|stringformat:"02d" }}</span><div><strong>{{ step.0 }}</strong><small>{{ step.1 }}</small></div></li>
+                        {% endfor %}
                     </ol>
-                    {% elif role == "guardia" %}
-                    <ol>
-                        <li><span>01</span><div><strong>Consulta el Dashboard</strong><small>Es el punto de entrada para revisar la actividad y abrir tus módulos disponibles.</small></div></li>
-                        <li><span>02</span><div><strong>Registra los movimientos</strong><small>Utiliza Visitantes, Domiciliarios y Paquetes para registrar ingresos y entregas.</small></div></li>
-                        <li><span>03</span><div><strong>Deja notas claras</strong><small>Usa el módulo Notas para documentar información que el equipo necesite consultar.</small></div></li>
-                    </ol>
-                    {% else %}
-                    <ol>
-                        <li><span>01</span><div><strong>Revisa tu cuenta</strong><small>La pantalla de Pagos muestra los movimientos asociados a tu casa.</small></div></li>
-                        <li><span>02</span><div><strong>Registra un pago</strong><small>Completa el formulario con el valor, la fecha y el soporte solicitado.</small></div></li>
-                        <li><span>03</span><div><strong>Verifica el estado</strong><small>Consulta el listado para revisar el estado que tiene registrado cada pago.</small></div></li>
-                    </ol>
+
+                    {% if module.table %}
+                    <section class="manual-module__table">
+                        <h5><i class="fa-solid fa-table-list" aria-hidden="true"></i> Tablas y consultas</h5>
+                        <p>{{ module.table }}</p>
+                    </section>
+                    {% endif %}
+
+                    {% if module.actions %}
+                    <section class="manual-module__actions">
+                        <h5><i class="fa-solid fa-sliders" aria-hidden="true"></i> Acciones del módulo</h5>
+                        <ul>
+                            {% for action in module.actions %}
+                            <li><strong>{{ action.0 }}</strong><span>{{ action.1 }}</span></li>
+                            {% endfor %}
+                        </ul>
+                    </section>
+                    {% endif %}
+
+                    {% if module.notice %}
+                    <p class="manual-module__warning"><i class="fa-solid fa-circle-info" aria-hidden="true"></i>{{ module.notice }}</p>
                     {% endif %}
                 </div>
             </div>

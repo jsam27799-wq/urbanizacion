@@ -1,5 +1,6 @@
 # Módulo: Agrupa pruebas automatizadas de los comportamientos y reglas de la aplicación.
 from datetime import timedelta
+from pathlib import Path
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
@@ -13,7 +14,9 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from core.forms import PerfilForm
 from core.models import PerfilUsuario
+from BD.views import asignar_grupo_por_rol
 from BD.models import Novedad, RegistroBitacora, Resena
+from core.manual_content import MANUAL_MODULES
 
 
 class ManualUsuarioViewTests(TestCase):
@@ -31,16 +34,16 @@ class ManualUsuarioViewTests(TestCase):
         self.assertContains(response, 'No explica la pantalla de acceso ni las páginas que aparecen después de ingresar.')
         self.assertNotContains(response, 'Captura pendiente')
         for screenshot in (
-            '01-portada.jpg',
-            '02-menu-y-acceso.jpg',
-            '03-servicios.jpg',
-            '04-espacios.jpg',
-            '05-novedades.jpg',
-            '06-resenas.jpg',
-            '07-contacto-y-ubicacion.jpg',
-            '08-ayuda-rapida.jpg',
+            '01-portada',
+            '02-menu-y-acceso',
+            '03-servicios',
+            '04-espacios',
+            '05-novedades',
+            '06-resenas',
+            '07-contacto-y-ubicacion',
+            '08-ayuda-rapida',
         ):
-            self.assertContains(response, screenshot)
+            self.assertContains(response, f'core/images/manual/{screenshot}.')
 
     def test_pagina_principal_muestra_el_acceso_flotante(self):
         response = self.client.get('/')
@@ -83,8 +86,8 @@ class ManualUsuarioViewTests(TestCase):
         self.assertContains(perfil_response, 'CO (+57)')
 
 
-class ManualRolesAndTecnicoViewTests(TestCase):
-    def test_administrador_consulta_las_tres_guias_y_el_manual_tecnico(self):
+class ManualRolesViewTests(TestCase):
+    def test_administrador_consulta_todos_los_modulos_del_manual(self):
         admin = get_user_model().objects.create_user(
             username='admin-manuales',
             password='clave-segura',
@@ -95,47 +98,69 @@ class ManualRolesAndTecnicoViewTests(TestCase):
         response = self.client.get(reverse('manual_roles'))
 
         self.assertEqual(response.status_code, 200)
-        for role in ('administrador', 'guardia', 'propietario'):
-            self.assertContains(response, f'data-role-manual="{role}"')
-        for screenshot in (
-            '01-administrador.jpg',
-            '02-guardia.jpg',
-            '03-propietario.jpg',
+        self.assertContains(response, '<h2>Manual de administrador</h2>')
+        for module, screenshot in (
+            ('perfil', '04-menu-sesion.png'),
+            ('dashboard', '07-dashboard-admin.png'),
+            ('usuarios', '10-crear-cuenta.png'),
+            ('personas', '12-propietario-residente.png'),
+            ('casas', '15-casa-formulario.png'),
+            ('visitantes', '18-visitante-formulario.png'),
+            ('domiciliarios', '22-domiciliario-formulario.png'),
+            ('paquetes', '24-paquete-formulario.png'),
+            ('notas', '32-nota-formulario.png'),
+            ('pagos', '27-pago-formulario.png'),
+            ('novedades', '31-novedad-formulario.png'),
+            ('resenas', '33-resena-publica.png'),
+            ('reportes', '36-reportes-filtros.png'),
+            ('historial', '38-historial.png'),
+            ('copias', '39-copias-seguridad.png'),
+            ('configuracion', '29-configuracion-cartera.png'),
         ):
-            self.assertContains(response, screenshot)
+            self.assertContains(response, f'data-manual-module="{module}"')
+            screenshot_name = screenshot.rsplit('.', 1)[0]
+            self.assertContains(response, f'core/images/manual-operativo/{screenshot_name}.')
 
         home_response = self.client.get('/')
         self.assertContains(home_response, reverse('manual_roles'))
-        self.assertContains(home_response, reverse('manual_tecnico'))
+        self.assertContains(home_response, 'Manual de administrador')
+        self.assertNotContains(home_response, 'Manual técnico')
         self.assertNotContains(home_response, 'data-manual-open')
-        technical_response = self.client.get(reverse('manual_tecnico'))
-        self.assertEqual(technical_response.status_code, 200)
-        self.assertContains(technical_response, 'Django 6.0.6')
-        self.assertContains(technical_response, r'..\.venv\Scripts\Activate.ps1')
-        self.assertContains(technical_response, 'Protege la configuración de producción')
+        self.assertEqual(self.client.get('/manual-tecnico/').status_code, 404)
 
-    def test_guardia_y_propietario_solo_consultan_su_guia_y_no_el_manual_tecnico(self):
-        for role, expected_role in (
-            ('Guardia', 'guardia'),
-            ('Propietario', 'propietario'),
+    def test_guardia_y_propietario_solo_consultan_su_guia(self):
+        for role, expected_role, visible_modules, hidden_modules in (
+            ('Guardia', 'guardia', {'perfil', 'dashboard', 'visitantes', 'domiciliarios', 'paquetes', 'notas'}, {'usuarios', 'casas', 'pagos', 'reportes', 'copias'}),
+            ('Propietario', 'propietario', {'perfil', 'pagos', 'comunidad'}, {'usuarios', 'visitantes', 'domiciliarios', 'paquetes', 'reportes', 'copias'}),
         ):
             with self.subTest(role=role):
                 user = get_user_model().objects.create_user(username=f'manual-{expected_role}')
-                group, _ = Group.objects.get_or_create(name=role)
-                user.groups.add(group)
+                asignar_grupo_por_rol(user, expected_role)
                 self.client.force_login(user)
 
                 response = self.client.get(reverse('manual_roles'))
 
                 self.assertEqual(response.status_code, 200)
-                self.assertContains(response, f'data-role-manual="{expected_role}"')
-                for hidden_role in {'administrador', 'guardia', 'propietario'} - {expected_role}:
-                    self.assertNotContains(response, f'data-role-manual="{hidden_role}"')
+                expected_title = f'Manual de {expected_role}'
+                self.assertContains(response, f'<h2>{expected_title}</h2>')
+                for module in visible_modules:
+                    self.assertContains(response, f'data-manual-module="{module}"')
+                for module in hidden_modules:
+                    self.assertNotContains(response, f'data-manual-module="{module}"')
 
                 home_response = self.client.get('/')
                 self.assertContains(home_response, reverse('manual_roles'))
-                self.assertNotContains(home_response, reverse('manual_tecnico'))
-                self.assertEqual(self.client.get(reverse('manual_tecnico')).status_code, 403)
+                self.assertContains(home_response, expected_title)
+                self.assertNotContains(home_response, 'Manual técnico')
+                self.assertEqual(self.client.get('/manual-tecnico/').status_code, 404)
+
+    def test_todas_las_capturas_de_los_manuales_existen_en_static(self):
+        for modules in MANUAL_MODULES.values():
+            for module in modules:
+                for figure in module['figures']:
+                    asset_path = Path(__file__).parent / 'static' / figure['src']
+                    with self.subTest(image=figure['src']):
+                        self.assertTrue(asset_path.is_file(), f'No existe la captura {asset_path}')
 
     def test_manuales_internos_requieren_una_sesion(self):
         response = self.client.get(reverse('manual_roles'))
@@ -553,6 +578,22 @@ class ResenaAccessTests(TestCase):
 
 # Agrupa pruebas automatizadas relacionadas con panel bitácora pruebas.
 class DashboardBitacoraTests(TestCase):
+    def test_dashboard_profile_button_remains_visible_and_links_to_profile(self):
+        user = get_user_model().objects.create_user(
+            username='jose-dashboard',
+            password='clave-segura',
+            is_staff=True,
+        )
+        self.client.force_login(user)
+
+        response = self.client.get(reverse('dashboard'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'dashboard-page-heading')
+        self.assertContains(response, 'dashboard-profile-toggle')
+        self.assertContains(response, f'Bienvenido {user}')
+        self.assertContains(response, reverse('perfil'))
+        self.assertContains(response, 'dashboard-profile-menu')
     # Verifica el comportamiento de panel y historial muestran registros de todos los modulos y sus condiciones relevantes.
     def test_dashboard_y_historial_muestran_registros_de_todos_los_modulos(self):
         user = get_user_model().objects.create_user(

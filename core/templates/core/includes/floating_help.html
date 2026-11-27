@@ -1,19 +1,12 @@
 <div class="floating-help" data-floating-help>
     <div class="floating-help__menu" id="floatingHelpMenu" data-floating-help-menu hidden>
         {% if request.user.is_authenticated %}
+        {% if request.user.is_staff or request.user.is_superuser or perms.auth.add_user or perms.BD.add_visitante or perms.BD.add_pago %}
         <a class="floating-help__shortcut" href="{% url 'manual_roles' %}">
             <span class="floating-help__shortcut-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/><path d="M8 6h8M8 10h8"/></svg>
             </span>
-            <span>Manual de mi rol</span>
-            <span class="floating-help__shortcut-arrow" aria-hidden="true">›</span>
-        </a>
-        {% if request.user.is_staff or request.user.is_superuser or perms.auth.add_user %}
-        <a class="floating-help__shortcut" href="{% url 'manual_tecnico' %}">
-            <span class="floating-help__shortcut-icon is-support" aria-hidden="true">
-                <svg viewBox="0 0 24 24"><path d="M12 8v4l2.5 2.5"/><circle cx="12" cy="12" r="9"/><path d="M12 3v2M21 12h-2M12 21v-2M3 12h2"/></svg>
-            </span>
-            <span>Manual técnico</span>
+            <span>{% if request.user.is_staff or request.user.is_superuser or perms.auth.add_user %}Manual de administrador{% elif perms.BD.add_visitante %}Manual de guardia{% else %}Manual de propietario{% endif %}</span>
             <span class="floating-help__shortcut-arrow" aria-hidden="true">›</span>
         </a>
         {% endif %}

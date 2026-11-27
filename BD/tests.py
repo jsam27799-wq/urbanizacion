@@ -2711,8 +2711,8 @@ class MoraCarteraTests(TestCase):
         pantalla_domicilios = self.client.get(reverse('registrar_domicilio'))
         self.assertEqual(pantalla_domicilios.status_code, 200)
         self.assertContains(pantalla_domicilios, 'data-floating-help')
-        self.assertContains(pantalla_domicilios, 'Manual técnico')
-        self.assertContains(pantalla_domicilios, 'core/sounds/alarma.mp3')
+        self.assertNotContains(pantalla_domicilios, 'Manual técnico')
+        self.assertContains(pantalla_domicilios, 'core/sounds/alarma.')
         self.assertContains(pantalla_domicilios, 'data-limite-segundos="180"')
         self.assertContains(pantalla_domicilios, '<span class="temporizador">03:00</span>', html=True)
 

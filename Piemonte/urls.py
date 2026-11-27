@@ -16,7 +16,6 @@ urlpatterns = [
     path('', views.index),
     path('manual-usuario/', views.manual_usuario_view, name='manual_usuario'),
     path('manual-roles/', views.manual_roles_view, name='manual_roles'),
-    path('manual-tecnico/', views.manual_tecnico_view, name='manual_tecnico'),
     path('login/', views.login, name='login'),
     path('password-reset/', views.PasswordResetEmailView.as_view(
         template_name='core/password_recovery/password_reset_form.html',

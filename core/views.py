@@ -21,6 +21,7 @@ from django.contrib.auth import update_session_auth_hash
 from .forms import PerfilForm, PerfilPasswordForm, formatear_telefono_internacional
 from .models import PerfilUsuario
 from .permissions import puede_enviar_resena
+from .manual_content import MANUAL_MODULES
 
 
 class PasswordResetEmailView(PasswordResetView):
@@ -107,26 +108,25 @@ def manual_usuario_view(request):
 
 @login_required(login_url='/login/')
 def manual_roles_view(request):
-    if es_administrador(request.user):
+    administrador = es_administrador(request.user)
+    if administrador:
         manual_roles = ('administrador', 'guardia', 'propietario')
+        manual_titulo = 'Manual de administrador'
     elif es_guardia(request.user):
         manual_roles = ('guardia',)
+        manual_titulo = 'Manual de guardia'
     elif es_propietario(request.user):
         manual_roles = ('propietario',)
+        manual_titulo = 'Manual de propietario'
     else:
         raise PermissionDenied
 
     return render(request, 'core/manual_roles.html', {
         'manual_roles': manual_roles,
-        'manual_es_administrador': es_administrador(request.user),
+        'manual_es_administrador': administrador,
+        'manual_titulo': manual_titulo,
+        'manual_capitulos': MANUAL_MODULES[manual_roles[0]],
     })
-
-
-@login_required(login_url='/login/')
-def manual_tecnico_view(request):
-    if not es_administrador(request.user):
-        raise PermissionDenied
-    return render(request, 'core/manual_tecnico.html')
 
 
 # Login
