@@ -54,14 +54,14 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
     'localhost',
     'testserver',
-    'indie-roberts-priorities-grad.trycloudflare.com',
+    'sixth-treo-vic-syracuse.trycloudflare.com',
     #APARTADO TIENE QUE SER IGUAL AL DE ABAJO DE CSRF TRUSTED ORIGINS DEL HTTPS ARE DEBIAN AL EJECUTAR EL CLOUDFLARE
     #SIN HTTPS NO FUNCIONA, SI SE PONE HTTP NO FUNCIONA EL LOGIN, SI SE PONE HTTPS SI FUNCIONA EL LOGIN
-    'indie-roberts-priorities-grad.trycloudflare.com',
+    'sixth-treo-vic-syracuse.trycloudflare.com',
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://indie-roberts-priorities-grad.trycloudflare.com',
+    'https://sixth-treo-vic-syracuse.trycloudflare.com',
 ]
 
 PUBLIC_HOSTNAME = os.environ.get('PIEMONTE_PUBLIC_HOSTNAME', '').strip()
